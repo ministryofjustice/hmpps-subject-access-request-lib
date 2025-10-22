@@ -17,10 +17,11 @@ kotlin {
 }
 
 dependencies {
-  api("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.7.0")
-  api("com.github.jknack:handlebars:4.4.0")
-
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.7.0")
+  implementation(project(":hmpps-subject-access-request-lib"))
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.7.0")
+  implementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
+  implementation("org.flywaydb:flyway-core")
+  implementation("jakarta.persistence:jakarta.persistence-api")
 }
 
 publishing {
@@ -28,12 +29,12 @@ publishing {
     mavenLocal()
   }
   publications {
-    create<MavenPublication>("mainLibrary") {
+    create<MavenPublication>("testSupportLibrary") {
       from(components["java"])
       pom {
         name.set(base.archivesName)
         artifactId = base.archivesName.get()
-        description.set("A helper library to share common code related to subject access requests")
+        description.set("A helper library to share code for use in testing subject access requests")
         url.set("https://github.com/ministryofjustice/hmpps-subject-access-request-lib")
         licenses {
           license {
@@ -66,7 +67,7 @@ signing {
   val signingKey: String? by project
   val signingPassword: String? by project
   useInMemoryPgpKeys(signingKey, signingPassword)
-  sign(publishing.publications["mainLibrary"])
+  sign(publishing.publications["testSupportLibrary"])
 }
 java.sourceCompatibility = JavaVersion.VERSION_21
 
@@ -96,8 +97,4 @@ tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
   }
-}
-
-tasks.named("generateMetadataFileForMainLibraryPublication") {
-  dependsOn("copyAgent")
 }

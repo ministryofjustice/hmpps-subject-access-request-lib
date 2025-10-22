@@ -17,15 +17,13 @@ open class SarIntegrationTestHelperConfig {
     @Value("\${hmpps.sar.tests.attachments-expected:false}") attachmentsExpected: Boolean,
     @Value("\${hmpps.sar.tests.expected-flyway-schema-version:0}") expectedFlywaySchemaVersion: String,
     @Value("\${hmpps.sar.tests.expected-jpa-entity-schema.path:}") expectedJpaEntitySchemaPath: String,
-  ): SarIntegrationTestHelper {
-    return SarIntegrationTestHelper(
-      jwtAuthHelper,
-      sarTemplatePath,
-      expectedApiResponsePath,
-      expectedRenderResultPath,
-      attachmentsExpected,
-      expectedFlywaySchemaVersion,
-      expectedJpaEntitySchemaPath,
-    )
-  }
+  ): SarIntegrationTestHelper = SarIntegrationTestHelper(
+    jwtAuthHelper,
+    sarTemplatePath,
+    expectedApiResponsePath,
+    expectedRenderResultPath,
+    attachmentsExpected,
+    expectedFlywaySchemaVersion,
+    expectedJpaEntitySchemaPath,
+  )
 }

@@ -6,23 +6,10 @@
 #
 # To stop the hmpps-gradle-spring-boot project from overwriting any project specific customisations here, remove the
 # warning at the top of this file.
-
-[*.kt]
-indent_size = 2
-ij_kotlin_allow_trailing_comma_on_call_site = true
-ij_kotlin_allow_trailing_comma = true
-ktlint_code_style = intellij_idea
-
-[*.kts]
-indent_size = 2
-ktlint_code_style = intellij_idea
-
-[*.java]
-ij_java_class_count_to_use_import_on_demand = 99
-ij_java_names_count_to_use_import_on_demand = 99
-ij_java_use_single_class_imports = true
-ij_java_insert_inner_class_imports = true
-indent_size = 4
-
-[*.html]
-indent_size = 2
+#
+# Suppression for h2 2.1.214 password on command line vulnerability
+#   can be suppressed as we only run h2 locally and not on build environments
+CVE-2022-45868
+# Suppression for tomcat vulnerability affecting jsp compilation in the default servlet
+#   can be suppressed as we do not use the default servlet and haven't configured it for write either
+CVE-2024-50379

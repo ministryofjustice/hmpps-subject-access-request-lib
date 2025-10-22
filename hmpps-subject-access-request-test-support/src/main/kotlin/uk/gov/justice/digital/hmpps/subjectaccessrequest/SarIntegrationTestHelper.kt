@@ -57,17 +57,16 @@ class SarIntegrationTestHelper(
     scopes: List<String> = listOf("read"),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles)
 
-  fun requestSarTemplate(webTestClient: WebTestClient): String {
-    return webTestClient.get().uri {
+  fun requestSarTemplate(webTestClient: WebTestClient): String = webTestClient
+    .get().uri {
       it.path("/subject-access-request/template")
         .build()
     }
-      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
-      .exchange()
-      .expectStatus().isOk
-      .expectBody(String::class.java)
-      .returnResult().responseBody!!
-  }
+    .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+    .exchange()
+    .expectStatus().isOk
+    .expectBody(String::class.java)
+    .returnResult().responseBody!!
 
   fun getServiceTemplate(): String {
     require(sarTemplatePath.isNotBlank()) { "SAR template path must be specified via property hmpps.sar.template.path" }
@@ -93,22 +92,17 @@ class SarIntegrationTestHelper(
 
   fun getResourceAsString(path: String): String = this::class.java.getResource(path)?.readText()!!
 
-  fun renderServiceTemplate(data: Any?): String {
-    return templateRenderService.renderServiceTemplate(RenderParameters(getServiceTemplate(), data))
-  }
+  fun renderServiceTemplate(data: Any?): String = templateRenderService.renderServiceTemplate(RenderParameters(getServiceTemplate(), data))
 
   fun getExpectedJsonNode(): JsonNode? = objectMapper.readTree(getExpectedJson())
 
-  fun toJsonNode(response: SubjectAccessRequestResponse): JsonNode? =
-    objectMapper.readTree(objectMapper.writeValueAsString(response.content))
+  fun toJsonNode(response: SubjectAccessRequestResponse): JsonNode? = objectMapper.readTree(objectMapper.writeValueAsString(response.content))
 
-  fun sanitizeHtml(html: String): String {
-    return html
-      .lines()
-      .filter { it.isNotBlank() }
-      .joinToString("\n")
-      .trim()
-  }
+  fun sanitizeHtml(html: String): String = html
+    .lines()
+    .filter { it.isNotBlank() }
+    .joinToString("\n")
+    .trim()
 
   fun stubFindPrisonNameWith(prisonName: String) {
     whenever(templateDataFetcherFacade.findPrisonNameByPrisonId(any())).thenReturn(prisonName)
