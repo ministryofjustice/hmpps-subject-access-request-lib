@@ -19,6 +19,7 @@ kotlin {
 dependencies {
   implementation(project(":hmpps-subject-access-request-lib"))
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.7.0")
+  implementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
   implementation("org.flywaydb:flyway-core")
   implementation("jakarta.persistence:jakarta.persistence-api")
 }
