@@ -8,7 +8,7 @@ kotlin {
 }
 
 allprojects {
-  group = "uk.gov.justice.digital.hmpps"
+  group = "uk.gov.justice.service.hmpps"
   version = "1.0.0"
 
   repositories {
