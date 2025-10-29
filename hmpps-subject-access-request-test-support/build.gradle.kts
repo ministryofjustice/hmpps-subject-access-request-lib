@@ -6,6 +6,7 @@ plugins {
   id("signing")
 }
 
+group = rootProject.group
 version = rootProject.version.toString()
 
 configurations {
