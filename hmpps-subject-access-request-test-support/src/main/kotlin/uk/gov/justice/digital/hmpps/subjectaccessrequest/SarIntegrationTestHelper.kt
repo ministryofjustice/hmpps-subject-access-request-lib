@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.mockito.kotlin.any
@@ -83,11 +82,9 @@ class SarIntegrationTestHelper(
     return getResourceAsString(expectedRenderResultPath)
   }
 
-  fun getExpectedSchemaSnapshot(): Map<String, List<String>> {
+  fun getExpectedSchemaSnapshot(): String {
     require(expectedJpaEntitySchemaPath.isNotBlank()) { "SAR expected JPA entity schema path must be specified via property hmpps.sar.tests.expected-jpa-entity-schema.path" }
-    val json = getResourceAsString(expectedJpaEntitySchemaPath)
-    val typeRef = object : TypeReference<Map<String, List<String>>>() {}
-    return objectMapper.readValue(json, typeRef)
+    return getResourceAsString(expectedJpaEntitySchemaPath)
   }
 
   fun getResourceAsString(path: String): String = this::class.java.getResource(path)?.readText()!!
@@ -96,7 +93,9 @@ class SarIntegrationTestHelper(
 
   fun getExpectedJsonNode(): JsonNode? = objectMapper.readTree(getExpectedJson())
 
-  fun toJsonNode(response: SubjectAccessRequestResponse): JsonNode? = objectMapper.readTree(objectMapper.writeValueAsString(response.content))
+  fun toJson(response: SubjectAccessRequestResponse): String = objectMapper.writeValueAsString(response.content)
+
+  fun toJsonNode(response: SubjectAccessRequestResponse): JsonNode? = objectMapper.readTree(toJson(response))
 
   fun sanitizeHtml(html: String): String = html
     .lines()

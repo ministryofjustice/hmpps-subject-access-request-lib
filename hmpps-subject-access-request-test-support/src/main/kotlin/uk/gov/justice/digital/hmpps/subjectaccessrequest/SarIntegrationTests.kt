@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest
 
 import jakarta.persistence.EntityManager
+import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
@@ -28,11 +29,13 @@ interface SarApiDataTest : SarApiTestBase {
 
     val response = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
 
-    assertThat(getSarHelper().toJsonNode(response)).`as`("Response content json")
-      .isEqualTo(getSarHelper().getExpectedJsonNode())
+    assertThatJson(getSarHelper().toJson(response)).`as`("Response content json")
+      .isEqualTo(getSarHelper().getExpectedJson())
     assertThat(response.attachments?.isEmpty() != false).`as`("Response has attachments")
       .isEqualTo(getSarHelper().attachmentsExpected)
   }
+
+
 }
 
 interface SarTemplateTest : SarApiTestBase {
@@ -47,7 +50,8 @@ interface SarTemplateTest : SarApiTestBase {
 
     val renderResult = getSarHelper().renderServiceTemplate(response.content)
 
-    assertThat(getSarHelper().sanitizeHtml(renderResult)).`as`("Generated report html").isEqualTo(getSarHelper().sanitizeHtml(getSarHelper().getExpectedRenderResult()))
+    assertThat(getSarHelper().sanitizeHtml(renderResult)).`as`("Generated report html")
+      .isEqualTo(getSarHelper().sanitizeHtml(getSarHelper().getExpectedRenderResult()))
   }
 }
 
@@ -76,11 +80,12 @@ interface SarJpaEntitiesTest : SarTestBase {
   fun `JPA generated entity schema should match expected snapshot`() {
     val metamodel = getEntityManagerInstance().metamodel
     val currentSchema = metamodel.entities.associate { entity ->
-      entity.name to entity.attributes.map { it.name }.sorted()
+      entity.name to entity.attributes.map { it.name to it.javaType.simpleName }.sortedBy { it.first }.toMap()
     }
 
     val expectedSchema = getSarHelper().getExpectedSchemaSnapshot()
 
-    assertThat(currentSchema).`as`("JPA entity schema").isEqualTo(expectedSchema)
+    assertThatJson(getSarHelper().objectMapper.writeValueAsString(currentSchema)).`as`("JPA entity schema")
+      .isEqualTo(expectedSchema)
   }
 }
