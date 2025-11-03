@@ -3,11 +3,13 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.persistence.EntityManager
+import org.flywaydb.core.Flyway
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.RenderParameters
@@ -15,11 +17,13 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateDataF
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpers
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateRenderService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
+import java.io.File
+import java.nio.file.Paths
 import java.util.*
+import javax.sql.DataSource
 
 class SarIntegrationTestHelper(
   val jwtAuthHelper: JwtAuthorisationHelper,
-  val sarTemplatePath: String,
   val expectedApiResponsePath: String,
   val expectedRenderResultPath: String,
   val attachmentsExpected: Boolean,
@@ -30,6 +34,10 @@ class SarIntegrationTestHelper(
   val templateHelpers: TemplateHelpers = TemplateHelpers(templateDataFetcherFacade),
   val templateRenderService: TemplateRenderService = TemplateRenderService(templateHelpers),
 ) {
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   fun requestSarDataForPrn(prn: String, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(prn, null, webTestClient)
 
@@ -67,12 +75,7 @@ class SarIntegrationTestHelper(
     .expectBody(String::class.java)
     .returnResult().responseBody!!
 
-  fun getServiceTemplate(): String {
-    require(sarTemplatePath.isNotBlank()) { "SAR template path must be specified via property hmpps.sar.template.path" }
-    return getResourceAsString(sarTemplatePath)
-  }
-
-  fun getExpectedJson(): String {
+  fun getExpectedSarJson(): String {
     require(expectedApiResponsePath.isNotBlank()) { "SAR expected API response path must be specified via property hmpps.sar.tests.expected-api-response.path" }
     return getResourceAsString(expectedApiResponsePath)
   }
@@ -87,15 +90,31 @@ class SarIntegrationTestHelper(
     return getResourceAsString(expectedJpaEntitySchemaPath)
   }
 
+  fun getFlywaySchemaVersion(dataSource: DataSource): String? = Flyway.configure()
+    .dataSource(dataSource).load().info().current()?.version?.version
+
   fun getResourceAsString(path: String): String = this::class.java.getResource(path)?.readText()!!
 
-  fun renderServiceTemplate(data: Any?): String = templateRenderService.renderServiceTemplate(RenderParameters(getServiceTemplate(), data))
+  fun saveContentToFile(content: String, name: String) {
+    val resourcesDir = Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toFile()
+    val file = File(resourcesDir, name)
+    if (!file.exists()) {
+      file.createNewFile()
+    }
+    file.writeText(content)
+  }
 
-  fun getExpectedJsonNode(): JsonNode? = objectMapper.readTree(getExpectedJson())
+  fun renderServiceReport(data: Any?, template: String): String = templateRenderService.renderServiceTemplate(RenderParameters(template, data))
+
+  fun getGeneratedEntitySchema(entityManager: EntityManager): String {
+    val metamodel = entityManager.metamodel
+    val currentSchema = metamodel.entities.associate { entity ->
+      entity.name to entity.attributes.map { it.name to it.javaType.simpleName }.sortedBy { it.first }.toMap()
+    }
+    return objectMapper.writeValueAsString(currentSchema)
+  }
 
   fun toJson(response: SubjectAccessRequestResponse): String = objectMapper.writeValueAsString(response.content)
-
-  fun toJsonNode(response: SubjectAccessRequestResponse): JsonNode? = objectMapper.readTree(toJson(response))
 
   fun sanitizeHtml(html: String): String = html
     .lines()
@@ -117,6 +136,21 @@ class SarIntegrationTestHelper(
 
   fun stubFindLocationNameByDpsIdWith(locationName: String) {
     whenever(templateDataFetcherFacade.findLocationNameByDpsId(any())).thenReturn(locationName)
+  }
+
+  fun saveSarApiResponse(response: SubjectAccessRequestResponse) {
+    saveContentToFile(toJson(response), "sar-api-response.json.log")
+    log.info("SAVED SAR API RESPONSE TO: src/test/resources/sar-api-response.json.log")
+  }
+
+  fun saveGeneratedReport(report: String) {
+    saveContentToFile(report, "sar-generated-report.html.log")
+    log.info("SAVED SAR GENERATED REPORT TO: src/test/resources/sar-generated-report.html.log")
+  }
+
+  fun saveEntitySchema(schema: String) {
+    saveContentToFile(schema, "entity-schema.json.log")
+    log.info("SAVED ENTITY SCHEMA TO: src/test/resources/entity-schema.json.log")
   }
 }
 

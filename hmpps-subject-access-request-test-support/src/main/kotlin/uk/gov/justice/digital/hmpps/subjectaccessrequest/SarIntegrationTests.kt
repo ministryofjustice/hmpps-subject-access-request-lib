@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest
 import jakarta.persistence.EntityManager
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
-import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.WebTestClient
 import javax.sql.DataSource
@@ -28,27 +27,32 @@ interface SarApiDataTest : SarApiTestBase {
     setupTestData()
 
     val response = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
+    if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
+      getSarHelper().saveSarApiResponse(response)
+    }
 
     assertThatJson(getSarHelper().toJson(response)).`as`("Response content json")
-      .isEqualTo(getSarHelper().getExpectedJson())
+      .isEqualTo(getSarHelper().getExpectedSarJson())
     assertThat(response.attachments?.isEmpty() != false).`as`("Response has attachments")
       .isEqualTo(getSarHelper().attachmentsExpected)
   }
-
-
 }
 
-interface SarTemplateTest : SarApiTestBase {
+interface SarReportTest : SarApiTestBase {
   @Test
-  fun `SAR template should render as expected`() {
+  fun `SAR report should render as expected`() {
     setupTestData()
     getSarHelper().stubFindPrisonNameWith("Moorland (HMP & YOI)")
     getSarHelper().stubFindUserLastNameWith("Johnson")
     getSarHelper().stubFindLocationNameByNomisIdWith("PROPERTY BOX 1")
     getSarHelper().stubFindLocationNameByDpsIdWith("PROPERTY BOX 2")
-    val response = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
+    val dataResponse = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
+    val templateResponse = getSarHelper().requestSarTemplate(getWebTestClientInstance())
 
-    val renderResult = getSarHelper().renderServiceTemplate(response.content)
+    val renderResult = getSarHelper().renderServiceReport(dataResponse.content, templateResponse)
+    if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
+      getSarHelper().saveGeneratedReport(renderResult)
+    }
 
     assertThat(getSarHelper().sanitizeHtml(renderResult)).`as`("Generated report html")
       .isEqualTo(getSarHelper().sanitizeHtml(getSarHelper().getExpectedRenderResult()))
@@ -61,14 +65,10 @@ interface SarFlywaySchemaTest : SarTestBase {
 
   @Test
   fun `Flyway schema version should match expected version`() {
-    val flyway = Flyway.configure()
-      .dataSource(getDataSourceInstance())
-      .load()
-
-    val current = flyway.info().current()
+    val currentVersion = getSarHelper().getFlywaySchemaVersion(getDataSourceInstance())
     val expectedVersion = getSarHelper().expectedFlywaySchemaVersion
 
-    assertThat(current?.version?.version).`as`("Flyway schema version").isEqualTo(expectedVersion)
+    assertThat(currentVersion).`as`("Flyway schema version").isEqualTo(expectedVersion)
   }
 }
 
@@ -78,14 +78,13 @@ interface SarJpaEntitiesTest : SarTestBase {
 
   @Test
   fun `JPA generated entity schema should match expected snapshot`() {
-    val metamodel = getEntityManagerInstance().metamodel
-    val currentSchema = metamodel.entities.associate { entity ->
-      entity.name to entity.attributes.map { it.name to it.javaType.simpleName }.sortedBy { it.first }.toMap()
-    }
-
     val expectedSchema = getSarHelper().getExpectedSchemaSnapshot()
 
-    assertThatJson(getSarHelper().objectMapper.writeValueAsString(currentSchema)).`as`("JPA entity schema")
-      .isEqualTo(expectedSchema)
+    val currentSchema = getSarHelper().getGeneratedEntitySchema(getEntityManagerInstance())
+    if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
+      getSarHelper().saveEntitySchema(currentSchema)
+    }
+
+    assertThatJson(currentSchema).`as`("JPA entity schema").isEqualTo(expectedSchema)
   }
 }

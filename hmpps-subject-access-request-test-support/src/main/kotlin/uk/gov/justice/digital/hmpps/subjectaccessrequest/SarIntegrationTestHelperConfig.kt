@@ -11,7 +11,6 @@ open class SarIntegrationTestHelperConfig {
   @Bean
   open fun sarIntegrationTestHelper(
     jwtAuthHelper: JwtAuthorisationHelper,
-    @Value("\${hmpps.sar.template.path:}") sarTemplatePath: String,
     @Value("\${hmpps.sar.tests.expected-api-response.path:}") expectedApiResponsePath: String,
     @Value("\${hmpps.sar.tests.expected-render-result.path:}") expectedRenderResultPath: String,
     @Value("\${hmpps.sar.tests.attachments-expected:false}") attachmentsExpected: Boolean,
@@ -19,7 +18,6 @@ open class SarIntegrationTestHelperConfig {
     @Value("\${hmpps.sar.tests.expected-jpa-entity-schema.path:}") expectedJpaEntitySchemaPath: String,
   ): SarIntegrationTestHelper = SarIntegrationTestHelper(
     jwtAuthHelper,
-    sarTemplatePath,
     expectedApiResponsePath,
     expectedRenderResultPath,
     attachmentsExpected,

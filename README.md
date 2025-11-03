@@ -77,9 +77,9 @@ the APIs of your service, assuming this is made available through your existing 
 
 There are a number of interfaces that exists which contain the tests that can be added to your test class. The idea of
 interfaces is that there is no mandation to implement all the tests giving some flexibility in deciding which tests you
-think would be required to catch changes in your service. However, it is recommended that at least the template test
-provided by `SarTemplateTest` is implemented to verify the generation of the report HTML and to have this to provide to
-the Branston team for reviewing of changes to the report.  
+think would be required to catch changes in your service. However, it is recommended that at least the report generation
+test provided by `SarReportTest` is implemented to verify the generation of the report HTML and to have this to provide
+to the Offender SAR team for reviewing of changes to the report.  
 
 #### Data schema tests
  
@@ -92,8 +92,9 @@ where Flyway is used by your service to manage database schema changes. When imp
 
     override fun getDataSourceInstance(): DataSource = dataSource
 
-The expected version of the schema that the test will expect to find will need to be provided by deinfing the property
-`hmpps.sar.tests.expected-flyway-schema-version` in your project.
+The expected version of the schema that the test will expect to find will need to be provided by defining the property
+`hmpps.sar.tests.expected-flyway-schema-version` in your project (to generate the actual entity schema see
+[here](#generating-the-actual-content-files)).
 
 The interface `SarJpaEntitiesTest` adds a test that generates a JSON representation of the current JPA Entity model of
 the service and compares to a known value in a file. This can be used to provide greater detail on differences when
@@ -144,20 +145,43 @@ implementation or otherwise).
 
 Once the required methods have been implemented in the test class, two properties will need to be defined. The property
 `hmpps.sar.tests.expected-api-response.path` will need to be set to the location of the known expected subject access
-request API json response file that the test will compare the actual results with. The property
-`hmpps.sar.tests.attachments-expected` can be set to indicate if attachments data is to be expected in the response,
-with a value of either `true` or `false`, although the default of false will be used of this property is not defined.    
+request API json response file that the test will compare the actual results with (to generate the actual see
+[here](#generating-the-actual-content-files)). The property`hmpps.sar.tests.attachments-expected` can be set to indicate
+if attachments data is to be expected in the response, with a value of either `true` or `false`, although the default of
+false will be used of this property is not defined.    
 
-#### Template test
+#### Report generation test
 
-The interface `SarTemplateTest` when implemented adds a test that retrieves the JSON data by calling the subject access
-request data endpoint of your service and then uses the subject access request template of your service to generate a
-HTML report. This report is then compared with a expected HTML report and fails if any differences are found. As with 
-the test provided by the `SarApiDataTest` interface, this relies on a full set of data related to an offender to be set
-up by implementing the same `setupTestData` method and uses the same offender id from either `getPrn` or `getCrn`
-implementations. The additional setup required for this test is the setting of the property `hmpps.sar.template.path`
-which defines the location of the subject access request template, and `hmpps.sar.tests.expected-render-result.path`
-which defines the location of the expected HTML report to compare with the actual generated one in the test.  
+The interface `SarReportTest` when implemented adds a test that retrieves the JSON data by calling the subject access
+request data endpoint of your service and then uses the subject access request template returned by the template API of
+your service to generate an HTML report. This report is then compared with an expected HTML report and fails if any
+differences are found.
+
+As with the test provided by the `SarApiDataTest` interface, this relies on a full set of data related to an offender to
+be set up by implementing the same `setupTestData` method and uses the same offender id from either `getPrn` or `getCrn`
+implementations. The additional setup required for this test is the setting of the property
+`hmpps.sar.tests.expected-render-result.path` which defines the location of the expected HTML report to compare with the
+actual generated one in the test (to generate the actual see [here](#generating-the-actual-content-files)).  
+
+#### Generating the actual content files
+
+It is possible to generate the actual content for the above tests in files to make it easier to initialise the expected
+content files for the first time and for direct comparisons when differences are found. To do this you need to run the
+tests with the environment variable `SAR_GENERATE_ACTUAL` set with a value `true`, for example if running from the
+command line:
+
+    SAR_GENERATE_ACTUAL=true ./gradlew test --tests "uk.gov.justice.digital.hmpps.MyTest"
+
+This will generate a file for each of the data schema, API, and report generation tests above in the
+`src/test/resources` folder of your project:
+
+| Test type   | Generated file                |
+|-------------|-------------------------------|
+| Data schema | entity-schema.json.log        |
+| API         | sar-api-response.json.log     |
+| Report      | sar-generated-report.html.log |
+
+(The files have the extension .log to ensure they are ignored by git and don't get committed)
 
 #### Using the helper directly
 
@@ -168,7 +192,7 @@ service.
 
 #### Example test class implementing all tests
 
-    class SubjectAccessRequestIntegrationTest: SarIntegrationTestBase(), SarApiDataTest, SarTemplateTest, SarFlywaySchemaTest, SarJpaEntitiesTest {
+    class SubjectAccessRequestIntegrationTest: SarIntegrationTestBase(), SarApiDataTest, SarReportTest, SarFlywaySchemaTest, SarJpaEntitiesTest {
         
         @Autowired
         lateinit var dataSource: DataSource
@@ -190,7 +214,7 @@ service.
 #### Example test class using own base class
 
     @Import(SarIntegrationTestHelperConfig::class)
-    class SubjectAccessRequestIntegrationTest : MyIntegrationTestBase(), SarApiDataTest, SarTemplateTest, SarFlywaySchemaTest, SarJpaEntitiesTest {
+    class SubjectAccessRequestIntegrationTest : MyIntegrationTestBase(), SarApiDataTest, SarReportTest, SarFlywaySchemaTest, SarJpaEntitiesTest {
     
         @Autowired
         lateinit var sarIntegrationTestHelper: SarIntegrationTestHelper
@@ -220,8 +244,6 @@ service.
      
     hmpps:
       sar:
-        template:
-          path: /templates/template_my-service-api.mustache
         tests:
           expected-api-response:
             path: /sar/my-service-api-response.json
