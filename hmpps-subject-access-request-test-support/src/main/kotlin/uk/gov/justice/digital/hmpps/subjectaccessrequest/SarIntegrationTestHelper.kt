@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateRende
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.io.File
 import java.nio.file.Paths
-import java.util.*
+import java.util.Optional
 import javax.sql.DataSource
 
 class SarIntegrationTestHelper(
