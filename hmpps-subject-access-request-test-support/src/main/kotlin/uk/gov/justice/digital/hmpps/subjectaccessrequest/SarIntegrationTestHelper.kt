@@ -104,7 +104,17 @@ class SarIntegrationTestHelper(
     file.writeText(content)
   }
 
-  fun renderServiceReport(data: Any?, template: String): String = templateRenderService.renderServiceTemplate(RenderParameters(template, data))
+  fun renderServiceReport(
+    data: Any?,
+    templateVersion: String,
+    template: String,
+  ): String = templateRenderService.renderServiceTemplate(
+    RenderParameters(
+      templateVersion = templateVersion,
+      template = template,
+      data = data,
+    ),
+  )
 
   fun getGeneratedEntitySchema(entityManager: EntityManager): String {
     val metamodel = entityManager.metamodel

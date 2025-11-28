@@ -15,4 +15,4 @@ class TemplateRenderService(
   }
 }
 
-data class RenderParameters(val template: String, val data: Any?)
+data class RenderParameters(val templateVersion: String, val template: String, val data: Any?)
