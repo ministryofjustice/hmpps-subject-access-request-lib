@@ -49,7 +49,11 @@ interface SarReportTest : SarApiTestBase {
     val dataResponse = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
     val templateResponse = getSarHelper().requestSarTemplate(getWebTestClientInstance())
 
-    val renderResult = getSarHelper().renderServiceReport(dataResponse.content, templateResponse)
+    val renderResult = getSarHelper().renderServiceReport(
+      data = dataResponse.content,
+      templateVersion = "1.0",
+      template = templateResponse,
+    )
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveGeneratedReport(renderResult)
     }
