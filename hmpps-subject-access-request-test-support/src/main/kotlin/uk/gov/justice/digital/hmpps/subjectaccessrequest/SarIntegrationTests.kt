@@ -29,12 +29,12 @@ interface SarApiDataTest : SarApiTestBase {
     val response = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveSarApiResponse(response)
+    } else {
+      assertThatJson(getSarHelper().toJson(response)).`as`("Response content json")
+        .isEqualTo(getSarHelper().getExpectedSarJson())
+      assertThat(response.attachments?.isEmpty() != false).`as`("Response has attachments")
+        .isEqualTo(getSarHelper().attachmentsExpected)
     }
-
-    assertThatJson(getSarHelper().toJson(response)).`as`("Response content json")
-      .isEqualTo(getSarHelper().getExpectedSarJson())
-    assertThat(response.attachments?.isEmpty() != false).`as`("Response has attachments")
-      .isEqualTo(getSarHelper().attachmentsExpected)
   }
 }
 
@@ -56,10 +56,9 @@ interface SarReportTest : SarApiTestBase {
     )
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveGeneratedReport(renderResult)
+    } else {
+      getSarHelper().assertHtmlEquals(renderResult, getSarHelper().getExpectedRenderResult())
     }
-
-    assertThat(getSarHelper().sanitizeHtml(renderResult)).`as`("Generated report html")
-      .isEqualTo(getSarHelper().sanitizeHtml(getSarHelper().getExpectedRenderResult()))
   }
 }
 
@@ -82,13 +81,12 @@ interface SarJpaEntitiesTest : SarTestBase {
 
   @Test
   fun `JPA generated entity schema should match expected snapshot`() {
-    val expectedSchema = getSarHelper().getExpectedSchemaSnapshot()
-
     val currentSchema = getSarHelper().getGeneratedEntitySchema(getEntityManagerInstance())
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveEntitySchema(currentSchema)
+    } else {
+      assertThatJson(currentSchema).`as`("JPA entity schema")
+        .isEqualTo(getSarHelper().getExpectedSchemaSnapshot())
     }
-
-    assertThatJson(currentSchema).`as`("JPA entity schema").isEqualTo(expectedSchema)
   }
 }

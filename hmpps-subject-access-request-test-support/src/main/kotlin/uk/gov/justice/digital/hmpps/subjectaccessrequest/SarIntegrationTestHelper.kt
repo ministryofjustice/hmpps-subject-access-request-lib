@@ -3,9 +3,16 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import jakarta.persistence.EntityManager
+import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.Node
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -29,7 +36,8 @@ class SarIntegrationTestHelper(
   val attachmentsExpected: Boolean,
   val expectedFlywaySchemaVersion: String,
   val expectedJpaEntitySchemaPath: String,
-  val objectMapper: ObjectMapper = ObjectMapper(),
+  val objectMapper: ObjectMapper = JsonMapper.builder().configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
+    .build(),
   val templateDataFetcherFacade: TemplateDataFetcherFacade = mock(),
   val templateHelpers: TemplateHelpers = TemplateHelpers(templateDataFetcherFacade),
   val templateRenderService: TemplateRenderService = TemplateRenderService(templateHelpers),
@@ -118,7 +126,7 @@ class SarIntegrationTestHelper(
 
   fun getGeneratedEntitySchema(entityManager: EntityManager): String {
     val metamodel = entityManager.metamodel
-    val currentSchema = metamodel.entities.associate { entity ->
+    val currentSchema = metamodel.entities.sortedBy { it.name }.associate { entity ->
       entity.name to entity.attributes.map { it.name to it.javaType.simpleName }.sortedBy { it.first }.toMap()
     }
     return objectMapper.writeValueAsString(currentSchema)
@@ -126,11 +134,33 @@ class SarIntegrationTestHelper(
 
   fun toJson(response: SubjectAccessRequestResponse): String = objectMapper.writeValueAsString(response.content)
 
-  fun sanitizeHtml(html: String): String = html
-    .lines()
-    .filter { it.isNotBlank() }
-    .joinToString("\n")
-    .trim()
+  fun assertHtmlEquals(
+    actualHtml: String,
+    expectedHtml: String,
+    description: String? = "Generated report html",
+  ) {
+    assertThat(normalizeHtml(actualHtml)).`as`(description).isEqualTo(normalizeHtml(expectedHtml))
+  }
+
+  fun normalizeHtml(html: String): String {
+    val doc: Document = Jsoup.parse(html)
+    doc.outputSettings()
+      .prettyPrint(true)
+      .syntax(Document.OutputSettings.Syntax.html)
+      .escapeMode(org.jsoup.nodes.Entities.EscapeMode.base)
+      .charset("UTF-8")
+
+    fun sortAttributes(node: Node) {
+      if (node is Element) {
+        val sortedAttrs = node.attributes().asList().sortedBy { it.key.lowercase() }
+        node.clearAttributes()
+        sortedAttrs.forEach { node.attr(it.key, it.value) }
+      }
+      node.childNodes().forEach { sortAttributes(it) }
+    }
+    sortAttributes(doc)
+    return doc.outerHtml()
+  }
 
   fun stubFindPrisonNameWith(prisonName: String) {
     whenever(templateDataFetcherFacade.findPrisonNameByPrisonId(any())).thenReturn(prisonName)
