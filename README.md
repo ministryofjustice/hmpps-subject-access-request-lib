@@ -87,8 +87,7 @@ For most of the tests described below there are expected content files that need
 the actual generated content with. It is possible to generate the actual content for the tests in files to make it
 easier to initialise the expected content files for the first time and for direct comparisons when differences are
 found. To do this you need to run the tests with the environment variable `SAR_GENERATE_ACTUAL` set with a value `true`.
-The expected files specified for each of the tests will need to exist otherise you will receive an exception when trying
-to generate, this can just be an empty file on first generation. For example if running from the command line:
+For example if running from the command line:
 
     SAR_GENERATE_ACTUAL=true ./gradlew test --tests "uk.gov.justice.digital.hmpps.MyTest"
 
