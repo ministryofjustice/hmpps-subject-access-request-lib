@@ -24,6 +24,7 @@ dependencies {
   implementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.0")
   implementation("org.flywaydb:flyway-core")
   implementation("jakarta.persistence:jakarta.persistence-api")
+  implementation("org.jsoup:jsoup:1.18.1")
 }
 
 publishing {
