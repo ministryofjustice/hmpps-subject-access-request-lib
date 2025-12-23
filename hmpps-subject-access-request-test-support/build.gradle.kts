@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
-  kotlin("plugin.spring") version "2.2.21"
-  kotlin("jvm") version "2.2.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.3.0"
+  kotlin("plugin.spring") version "2.3.0"
+  kotlin("jvm") version "2.3.0"
   id("maven-publish")
   id("signing")
 }
@@ -9,12 +9,8 @@ plugins {
 group = rootProject.group
 version = rootProject.version.toString()
 
-configurations {
-  testImplementation { exclude(group = "org.junit.vintage") }
-}
-
 kotlin {
-  jvmToolchain(21)
+  jvmToolchain(25)
 }
 
 dependencies {
@@ -72,7 +68,7 @@ signing {
   useInMemoryPgpKeys(signingKey, signingPassword)
   sign(publishing.publications["testSupportLibrary"])
 }
-java.sourceCompatibility = JavaVersion.VERSION_21
+java.sourceCompatibility = JavaVersion.VERSION_25
 
 tasks.bootJar {
   enabled = false
@@ -93,11 +89,11 @@ java {
 }
 
 kotlin {
-  jvmToolchain(21)
+  jvmToolchain(25)
 }
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
   }
 }
