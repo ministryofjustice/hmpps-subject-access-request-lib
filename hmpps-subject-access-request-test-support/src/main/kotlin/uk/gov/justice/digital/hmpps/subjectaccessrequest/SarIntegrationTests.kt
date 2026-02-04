@@ -32,7 +32,7 @@ interface SarApiDataTest : SarApiTestBase {
     } else {
       assertThatJson(getSarHelper().toJson(response)).`as`("Response content json")
         .isEqualTo(getSarHelper().getExpectedSarJson())
-      assertThat(response.attachments?.isEmpty() != false).`as`("Response has attachments")
+      assertThat(response.attachments?.isNotEmpty() == true).`as`("Response has attachments")
         .isEqualTo(getSarHelper().attachmentsExpected)
     }
   }
