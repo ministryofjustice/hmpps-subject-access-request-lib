@@ -21,7 +21,7 @@ dependencies {
   implementation(project(":hmpps-subject-access-request-lib"))
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.0")
   implementation("org.springframework.boot:spring-boot-webtestclient:4.1.0-M1")
-  implementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
+  implementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
   implementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.0")
   implementation("org.flywaydb:flyway-core")
   implementation("jakarta.persistence:jakarta.persistence-api")
