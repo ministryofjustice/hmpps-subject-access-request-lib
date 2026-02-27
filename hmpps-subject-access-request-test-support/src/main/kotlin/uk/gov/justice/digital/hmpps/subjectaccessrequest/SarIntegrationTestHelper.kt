@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateRende
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.io.File
 import java.nio.file.Paths
+import java.time.LocalDate
 import java.util.Optional
 import javax.sql.DataSource
 
@@ -47,15 +48,21 @@ class SarIntegrationTestHelper(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun requestSarDataForPrn(prn: String, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(prn, null, webTestClient)
+  fun requestSarDataForPrn(prn: String, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(prn, null, null, null, webTestClient)
 
-  fun requestSarDataForCrn(crn: String, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(null, crn, webTestClient)
+  fun requestSarDataForPrn(prn: String, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(prn, null, fromDate, toDate, webTestClient)
 
-  fun requestSarData(prn: String?, crn: String?, webTestClient: WebTestClient): SubjectAccessRequestResponse {
+  fun requestSarDataForCrn(crn: String, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(null, crn, null, null, webTestClient)
+
+  fun requestSarDataForCrn(crn: String, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(null, crn, fromDate, toDate, webTestClient)
+
+  fun requestSarData(prn: String?, crn: String?, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient): SubjectAccessRequestResponse {
     val response = webTestClient.get().uri {
       it.path("/subject-access-request")
         .queryParamIfPresent("prn", Optional.ofNullable(prn))
         .queryParamIfPresent("crn", Optional.ofNullable(crn))
+        .queryParamIfPresent("fromDate", Optional.ofNullable(fromDate))
+        .queryParamIfPresent("toDate", Optional.ofNullable(toDate))
         .build()
     }
       .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))

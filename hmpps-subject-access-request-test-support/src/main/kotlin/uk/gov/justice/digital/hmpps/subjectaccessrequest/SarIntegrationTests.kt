@@ -5,6 +5,7 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.WebTestClient
+import java.time.LocalDate
 import javax.sql.DataSource
 
 interface SarTestBase {
@@ -17,6 +18,8 @@ interface SarApiTestBase : SarTestBase {
   fun setupTestData()
   fun getPrn(): String? = null
   fun getCrn(): String? = null
+  fun getFromDate(): LocalDate? = null
+  fun getToDate(): LocalDate? = null
   fun getWebTestClientInstance(): WebTestClient
 }
 
@@ -26,7 +29,7 @@ interface SarApiDataTest : SarApiTestBase {
   fun `SAR API should return expected data`() {
     setupTestData()
 
-    val response = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
+    val response = getSarHelper().requestSarData(getPrn(), getCrn(), getFromDate(), getToDate(), getWebTestClientInstance())
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveSarApiResponse(response)
     } else {
@@ -46,7 +49,7 @@ interface SarReportTest : SarApiTestBase {
     getSarHelper().stubFindUserLastNameWith("Johnson")
     getSarHelper().stubFindLocationNameByNomisIdWith("PROPERTY BOX 1")
     getSarHelper().stubFindLocationNameByDpsIdWith("PROPERTY BOX 2")
-    val dataResponse = getSarHelper().requestSarData(getPrn(), getCrn(), getWebTestClientInstance())
+    val dataResponse = getSarHelper().requestSarData(getPrn(), getCrn(), getFromDate(), getToDate(), getWebTestClientInstance())
     val templateResponse = getSarHelper().requestSarTemplate(getWebTestClientInstance())
 
     val renderResult = getSarHelper().renderServiceReport(
