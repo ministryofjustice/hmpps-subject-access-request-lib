@@ -165,6 +165,13 @@ or relates to probation and uses CRNs:
 This offender id should match the one related to the data set up for the test (either in the `setupTestData`
 implementation or otherwise).
 
+Additional from and to date values can be provided by overriding `getFromDate` and `getToDate` methods which will ensure
+the request made will use those parameters, otherwise the default will be to not use any parameters to restrict the
+fetched data to any date range:
+
+    override fun getFromDate(): LocalDate? = LocalDate.parse("2023-01-01")
+    override fun getToDate(): LocalDate? = LocalDate.parse("2026-01-01")
+
 Once the required methods have been implemented in the test class, two properties will need to be defined. The property
 `hmpps.sar.tests.expected-api-response.path` will need to be set to the location of the known expected subject access
 request API json response file that the test will compare the actual results with (to generate the actual api response
@@ -182,7 +189,8 @@ differences are found.
 
 As with the test provided by the `SarApiDataTest` interface, this relies on a full set of data related to an offender to
 be set up by implementing the same `setupTestData` method and uses the same offender id from either `getPrn` or `getCrn`
-implementations. The additional setup required for this test is the setting of the property
+implementations. Also the optional `getFromDate` and `getToDate` values will be used to restrict the data used to 
+generate the report to a specified range. The additional setup required for this test is the setting of the property
 `hmpps.sar.tests.expected-render-result.path` which defines the location of the expected HTML report to compare with the
 actual generated one in the test (to generate the actual rendered HTML ensure the file defined by this property exists
 and run the test with `SAR_GENERATE_ACTUAL=true` see [here](#generating-the-actual-content-files)).
