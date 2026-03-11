@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.2"
-  kotlin("plugin.spring") version "2.2.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.5"
+  kotlin("plugin.spring") version "2.3.10"
   kotlin("jvm") version "2.2.20"
   id("maven-publish")
   id("signing")
@@ -19,10 +19,10 @@ kotlin {
 
 dependencies {
   implementation(project(":hmpps-subject-access-request-lib"))
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.0")
-  implementation("org.springframework.boot:spring-boot-webtestclient:4.1.0-M1")
-  implementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
-  implementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.2")
+  implementation("org.springframework.boot:spring-boot-webtestclient")
+  implementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
+  implementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.1")
   implementation("org.flywaydb:flyway-core")
   implementation("jakarta.persistence:jakarta.persistence-api")
   implementation("org.jsoup:jsoup:1.22.1")
