@@ -2,16 +2,16 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
 import com.github.jknack.handlebars.Handlebars
 import com.github.mustachejava.DefaultMustacheFactory
-import org.springframework.beans.factory.annotation.Value
 import java.io.BufferedWriter
 import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
 import java.io.StringReader
 import java.nio.charset.StandardCharsets
 
+const val STYLE_TEMPLATE_PATH = "/templates/main_stylesheet.mustache"
+
 class TemplateRenderService(
   private val templateHelpers: TemplateHelpers,
-  @param:Value("\${template-resources.directory}") private val templatesDirectory: String = "/templates",
 ) {
 
   fun renderServiceTemplate(params: RenderParameters): ByteArrayOutputStream {
@@ -37,9 +37,7 @@ class TemplateRenderService(
     return out
   }
 
-  private fun getStyleTemplate(): String = getTemplateResourceOrNull("$templatesDirectory/main_stylesheet.mustache") ?: ""
-
-  private fun getTemplateResourceOrNull(path: String) = this::class.java.getResource(path)?.readText()
+  private fun getStyleTemplate() = this::class.java.getResource(STYLE_TEMPLATE_PATH)?.readText() ?: ""
 }
 
 data class RenderParameters(val templateVersion: String, val template: String, val data: Any?)
