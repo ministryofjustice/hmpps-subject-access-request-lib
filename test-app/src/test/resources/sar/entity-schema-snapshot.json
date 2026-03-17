@@ -1,0 +1,9 @@
+{
+  "TestEntity": {
+    "id": "UUID",
+    "testDate": "LocalDate",
+    "testFlag": "boolean",
+    "testLabel": "String",
+    "testName": "String"
+  }
+}

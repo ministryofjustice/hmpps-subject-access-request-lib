@@ -1,0 +1,27 @@
+server:
+  shutdown: immediate
+
+spring:
+  datasource:
+    url: 'jdbc:h2:mem:subject-access-request-db;MODE=PostgreSQL'
+    username: sa
+    password:
+
+management.endpoint:
+  health.cache.time-to-live: 0
+  info.cache.time-to-live: 0
+
+hmpps-auth:
+  url: "http://localhost:8090/auth"
+
+hmpps:
+  sar:
+    tests:
+      expected-api-response:
+        path: /sar/test-app-response.json
+      expected-render-result:
+        path: /sar/test-app-expected.html
+      attachments-expected: true
+      expected-flyway-schema-version: 1.2
+      expected-jpa-entity-schema:
+        path: /sar/entity-schema-snapshot.json

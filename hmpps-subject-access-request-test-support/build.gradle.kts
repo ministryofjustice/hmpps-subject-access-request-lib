@@ -1,7 +1,7 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.5"
   kotlin("plugin.spring") version "2.3.10"
-  kotlin("jvm") version "2.2.20"
+  kotlin("jvm") version "2.3.10"
   id("maven-publish")
   id("signing")
 }
@@ -11,10 +11,6 @@ version = rootProject.version.toString()
 
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
-}
-
-kotlin {
-  jvmToolchain(25)
 }
 
 dependencies {
