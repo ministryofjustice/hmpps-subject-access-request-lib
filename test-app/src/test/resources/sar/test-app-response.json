@@ -1,0 +1,16 @@
+{
+  "testItems": [
+    {
+      "testDate": "2026-02-01",
+      "testFlag": true,
+      "testLabel": "Test 1",
+      "testName": "test-one"
+    },
+    {
+      "testDate": "2026-03-01",
+      "testFlag": false,
+      "testLabel": "Test 2",
+      "testName": "test-two"
+    }
+  ]
+}

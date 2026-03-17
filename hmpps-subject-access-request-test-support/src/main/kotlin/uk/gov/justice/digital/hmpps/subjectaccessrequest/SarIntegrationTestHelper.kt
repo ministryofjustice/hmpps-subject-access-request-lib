@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpe
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateRenderService
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.Optional
@@ -129,7 +130,7 @@ class SarIntegrationTestHelper(
       template = template,
       data = data,
     ),
-  )
+  ).toString(StandardCharsets.UTF_8)
 
   fun getGeneratedEntitySchema(entityManager: EntityManager): String {
     val metamodel = entityManager.metamodel
@@ -166,6 +167,19 @@ class SarIntegrationTestHelper(
       node.childNodes().forEach { sortAttributes(it) }
     }
     sortAttributes(doc)
+
+    // Normalize CSS inside <style> tags as Jsoup won't pretty-print or reflow CSS text
+    doc.select("style").forEach { styleEl ->
+      val css = styleEl.data()
+      val normalizedCss =
+        css
+          .lines()
+          .map { it.trimStart() }.joinToString("\n") { it.replace(Regex("\\s+$"), "") }
+          .replace(Regex("\n{2,}"), "\n")
+          .trim()
+      styleEl.text(normalizedCss)
+    }
+
     return doc.outerHtml()
   }
 

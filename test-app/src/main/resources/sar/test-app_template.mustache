@@ -1,0 +1,15 @@
+<h1>Test Report</h1>
+
+<h2>Test Items</h2>
+{{#testItems}}
+    <h3>Item</h3>
+    <table class="summary-list">
+        <tr><td>Name</td><td>{{ optionalValue testName }}</td></tr>
+        <tr><td>Label</td><td>{{ optionalValue testLabel }}</td></tr>
+        <tr><td>Date</td><td>{{ optionalValue (formatDate testDate) }}</td></tr>
+        <tr><td>Flag</td><td>{{ convertBoolean testFlag }}</td></tr>
+    </table>
+{{/testItems}}
+{{^testItems}}
+    <p>No Data Held</p>
+{{/testItems}}

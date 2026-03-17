@@ -12,6 +12,11 @@ This library consists of two individual libraries related to subject access requ
 * Testing helpers and patterns that are to be used by service teams to help them detect changes to subject access
   request related data and templates. 
 
+## Release Notes
+
+##### [2.x](release-notes/2.x.md)
+##### [1.x](release-notes/1.x.md)
+
 ## Usage
 
 ### Main library
