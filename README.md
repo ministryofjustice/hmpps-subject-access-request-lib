@@ -14,7 +14,6 @@ This library consists of two individual libraries related to subject access requ
 
 ## Release Notes
 
-##### [2.x](release-notes/2.x.md)
 ##### [1.x](release-notes/1.x.md)
 
 ## Usage
