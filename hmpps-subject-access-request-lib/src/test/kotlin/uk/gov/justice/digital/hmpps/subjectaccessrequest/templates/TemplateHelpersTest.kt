@@ -68,16 +68,26 @@ class TemplateHelpersTest {
       assertThat(response).isEqualTo("")
     }
 
-    @Test
-    fun `formatDate returns formatted date for valid string input`() {
-      val response = templateHelpers.formatDate("2023-10-01")
-      assertThat(response).isEqualTo("01 October 2023")
-    }
-
-    @Test
-    fun `formatDate returns formatted date for valid string input 2`() {
-      val response = templateHelpers.formatDate("1805-10-21T16:30:41+0100")
-      assertThat(response).isEqualTo("21 October 1805, 4:30 pm")
+    @ParameterizedTest
+    @CsvSource(
+      value =
+      [
+        "2023-10-01, 01 October 2023",
+        "2023-10-21T16:30:41Z, '21 October 2023, 5:30:41 pm'",
+        "2023-01-21T16:30:41Z, '21 January 2023, 4:30:41 pm'",
+        "2023-10-21T16:30:41+0000, '21 October 2023, 5:30:41 pm'",
+        "2023-01-21T16:30:41+0000, '21 January 2023, 4:30:41 pm'",
+        "2023-10-21T16:30:41+0100, '21 October 2023, 4:30:41 pm'",
+        "2023-01-21T16:30:41+0100, '21 January 2023, 3:30:41 pm'",
+        "2023-10-21T16:30:41+00:00, '21 October 2023, 5:30:41 pm'",
+        "2023-01-21T16:30:41+00:00, '21 January 2023, 4:30:41 pm'",
+        "2023-10-21T16:30:41+05:00, '21 October 2023, 12:30:41 pm'",
+        "2023-01-21T16:30:41+05:00, '21 January 2023, 11:30:41 am'",
+      ],
+    )
+    fun `formatDate returns formatted date for valid string input`(input: String, expected: String) {
+      val response = templateHelpers.formatDate(input)
+      assertThat(response).isEqualTo(expected)
     }
 
     @ParameterizedTest
