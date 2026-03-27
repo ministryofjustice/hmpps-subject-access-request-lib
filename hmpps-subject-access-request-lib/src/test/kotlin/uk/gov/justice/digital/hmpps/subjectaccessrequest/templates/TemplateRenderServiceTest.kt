@@ -59,8 +59,9 @@ class TemplateRenderServiceTest {
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Prison: </td><td>Alcatraz</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>DPS Location: </td><td>Cell 1234</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nomis Location: </td><td>Infirmary</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data:</td><td>nestedValue1</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data:</td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Boolean Value: </td><td>Yes</td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data: </td><td>nestedValue1</td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data: </td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
 
       verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
       verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
@@ -226,6 +227,29 @@ class TemplateRenderServiceTest {
     }
   }
 
+  @Nested
+  inner class ConvertBoolean {
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        " true    | Yes",
+        " false   | No",
+        " 1       | Yes",
+        " 0       | No",
+        "         | No Data Held",
+        " Yellow  | Yellow",
+      ],
+      delimiter = '|',
+    )
+    fun `should convert boolean field to expected value`(input: Any?, expected: String) {
+      assertContainsExpectedValueOnce(
+        actual = renderReportHtml(TestServiceData(booleanVal = input)),
+        expectValue = "<tr><td>Boolean Value: </td><td>${expected}</td></tr>",
+      )
+    }
+  }
+
 
   private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
     RenderParameters(
@@ -250,6 +274,7 @@ class TemplateRenderServiceTest {
     val prisonCode: String? = null,
     val dpsLocationId: String? = null,
     val nomisLocationId: Int? = null,
+    val booleanVal: Any? = null,
     val userId: String? = null,
     val moreData: Map<String, Any> = emptyMap(),
     val arrayData: MutableList<String> = mutableListOf(),
@@ -261,6 +286,7 @@ class TemplateRenderServiceTest {
       prisonCode = "AZ",
       dpsLocationId = "1234",
       nomisLocationId = 789,
+      booleanVal = true,
       userId = "354703",
       moreData = mapOf(
         "nestedKey" to "nestedValue1",
