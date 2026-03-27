@@ -30,6 +30,7 @@
         <tr><td>Nomis Location: </td><td>{{ getLocationNameByNomisId nomisLocationId }}</td></tr>
         <tr><td>Boolean Value: </td><td>{{ convertBoolean booleanVal }}</td></tr>
         <tr><td>Camel Case: </td><td>{{ convertCamelCase camelCaseVal }}</td></tr>
+        <tr><td>String Equality: </td><td>{{ eq testKey testKey2 }}</td></tr>
         <tr><td>Nested Data: </td><td>{{moreData.nestedKey}}</td></tr>
         <tr><td>Array Data: </td><td><ul>{{#arrayData}}<li>{{.}}</li>{{/arrayData}}</ul></td></tr>
     </table>

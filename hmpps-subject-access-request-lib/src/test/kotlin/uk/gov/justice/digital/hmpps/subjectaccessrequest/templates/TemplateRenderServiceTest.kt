@@ -61,12 +61,15 @@ class TemplateRenderServiceTest {
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nomis Location: </td><td>Infirmary</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Boolean Value: </td><td>Yes</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Camel Case: </td><td>hello world</td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Camel Case: </td><td>hello world</td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>String Equality: </td><td>true</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data: </td><td>nestedValue1</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data: </td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
 
       verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
       verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
       verify(templateDataFetcher, times(1)).findLocationNameByDpsId("1234")
+      verify(templateDataFetcher, times(1)).findLocationNameByNomisId(789)
     }
   }
 
@@ -272,6 +275,33 @@ class TemplateRenderServiceTest {
     }
   }
 
+  @Nested
+  inner class Eq {
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "         |         | true",
+        " ''      | ''      | true",
+        " ABC     | ABC     | true",
+        "         | ''      | false",
+        " 'Abc'   | 'ABC'   | false",
+        " 'ABC '  | 'ABC'   | false",
+      ],
+      delimiter = '|',
+    )
+    fun `should return expected value when comparing strings for equality`(
+      value1: String?,
+      value2: String?,
+      expected: Boolean,
+    ) {
+      assertContainsExpectedValueOnce(
+        actual = renderReportHtml(TestServiceData(testKey = value1, testKey2 = value2)),
+        expectValue = "<tr><td>String Equality: </td><td>${expected}</td></tr>",
+      )
+    }
+  }
+
   private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
     RenderParameters(
       templateVersion = "1.0",
@@ -292,6 +322,7 @@ class TemplateRenderServiceTest {
 
   private data class TestServiceData(
     val testKey: String? = null,
+    val testKey2: String? = null,
     val prisonCode: String? = null,
     val dpsLocationId: String? = null,
     val nomisLocationId: Int? = null,
@@ -305,6 +336,7 @@ class TemplateRenderServiceTest {
   private val testServiceData: List<TestServiceData> = listOf(
     TestServiceData(
       testKey = "testValue1",
+      testKey2 = "testValue1",
       prisonCode = "AZ",
       dpsLocationId = "1234",
       nomisLocationId = 789,
