@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.ArgumentMatchers.anyString
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -38,6 +39,9 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findLocationNameByDpsId("1234"))
         .thenReturn("Cell 1234")
 
+      whenever(templateDataFetcher.findLocationNameByNomisId(789))
+        .thenReturn("Infirmary")
+
       val renderParams = RenderParameters(
         templateVersion = "1.0",
         template = getResource("/templates/test-service-template.mustache"),
@@ -54,6 +58,7 @@ class TemplateRenderServiceTest {
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Username: </td><td>Capone</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Prison: </td><td>Alcatraz</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>DPS Location: </td><td>Cell 1234</td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nomis Location: </td><td>Infirmary</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data:</td><td>nestedValue1</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data:</td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
 
@@ -187,6 +192,41 @@ class TemplateRenderServiceTest {
     }
   }
 
+  @Nested
+  inner class GetLocationNameByNomisId {
+
+    @Test
+    fun `should render location name for valid Id`() {
+      whenever(templateDataFetcher.findLocationNameByNomisId(1234))
+        .thenReturn("Cell 666")
+
+      val actual = renderReportHtml(TestServiceData(nomisLocationId = 1234))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Nomis Location: </td><td>Cell 666</td></tr>")
+      verify(templateDataFetcher, times(1)).findLocationNameByNomisId(1234)
+    }
+
+    @Test
+    fun `should render no data held if location Id is null`() {
+      val actual = renderReportHtml(TestServiceData(nomisLocationId = null))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Nomis Location: </td><td>No Data Held</td></tr>")
+      verify(templateDataFetcher, never()).findLocationNameByNomisId(any())
+    }
+
+    @Test
+    fun `should render location Id if location result is null`() {
+      whenever(templateDataFetcher.findLocationNameByNomisId(1234))
+        .thenReturn(null)
+
+      val actual = renderReportHtml(TestServiceData(nomisLocationId = 1234))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Nomis Location: </td><td>1234</td></tr>")
+      verify(templateDataFetcher, times(1)).findLocationNameByNomisId(1234)
+    }
+  }
+
+
   private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
     RenderParameters(
       templateVersion = "1.0",
@@ -209,6 +249,7 @@ class TemplateRenderServiceTest {
     val testKey: String? = null,
     val prisonCode: String? = null,
     val dpsLocationId: String? = null,
+    val nomisLocationId: Int? = null,
     val userId: String? = null,
     val moreData: Map<String, Any> = emptyMap(),
     val arrayData: MutableList<String> = mutableListOf(),
@@ -219,6 +260,7 @@ class TemplateRenderServiceTest {
       testKey = "testValue1",
       prisonCode = "AZ",
       dpsLocationId = "1234",
+      nomisLocationId = 789,
       userId = "354703",
       moreData = mapOf(
         "nestedKey" to "nestedValue1",

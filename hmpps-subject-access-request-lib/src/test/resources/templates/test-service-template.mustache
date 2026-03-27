@@ -4,6 +4,7 @@
       "prisonCode": "SPT",
       "userId": "354703",
       "dpsLocationId": "1234",
+      "nomisLocationId": "1234",
       "testKey": "testValue1",
       "moreData": {
         "nestedKey": "nestedValue1"
@@ -24,6 +25,7 @@
         <tr><td>Username: </td><td>{{getUserLastName userId}}</td></tr>
         <tr><td>Prison: </td><td>{{ getPrisonName prisonCode }}</td></tr>
         <tr><td>DPS Location: </td><td>{{ getLocationNameByDpsId dpsLocationId }}</td></tr>
+        <tr><td>Nomis Location: </td><td>{{ getLocationNameByNomisId nomisLocationId }}</td></tr>
         <tr><td>Nested Data:</td><td>{{moreData.nestedKey}}</td></tr>
         <tr><td>Array Data:</td><td><ul>{{#arrayData}}<li>{{.}}</li>{{/arrayData}}</ul></td></tr>
     </table>
