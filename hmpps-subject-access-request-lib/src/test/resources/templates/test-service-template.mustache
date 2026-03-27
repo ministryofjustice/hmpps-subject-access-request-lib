@@ -1,0 +1,30 @@
+<!-- Sample data:
+[
+    {
+      "prisonCode": "SPT",
+      "userId": "354703",
+      "dpsLocationId": "1234",
+      "testKey": "testValue1",
+      "moreData": {
+        "nestedKey": "nestedValue1"
+      },
+      "arrayData": [
+        "arrayValue1-1",
+        "arrayValue1-2"
+      ]
+    }
+]
+-->
+
+{{#.}}
+    <h2>Test Service Data</h2>
+
+    <table>
+        <tr><td>Test Key:</td><td>{{testKey}}</td></tr>
+        <tr><td>Username: </td><td>{{getUserLastName userId}}</td></tr>
+        <tr><td>Prison: </td><td>{{ getPrisonName prisonCode }}</td></tr>
+        <tr><td>DPS Location: </td><td>{{ getLocationNameByDpsId dpsLocationId }}</td></tr>
+        <tr><td>Nested Data:</td><td>{{moreData.nestedKey}}</td></tr>
+        <tr><td>Array Data:</td><td><ul>{{#arrayData}}<li>{{.}}</li>{{/arrayData}}</ul></td></tr>
+    </table>
+{{/.}}

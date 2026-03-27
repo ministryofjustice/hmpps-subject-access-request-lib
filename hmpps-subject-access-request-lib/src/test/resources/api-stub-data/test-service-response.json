@@ -1,0 +1,17 @@
+{
+  "content":[
+    {
+      "prisonCode": "SPT",
+      "userId": "742",
+      "dpsLocationId": "1234",
+      "testKey": "testValue",
+      "moreData": {
+        "nestedKey": "nestedValue"
+      },
+      "arrayData": [
+        "arrayValue1-1",
+        "arrayValue1-2"
+      ]
+    }
+  ]
+}
