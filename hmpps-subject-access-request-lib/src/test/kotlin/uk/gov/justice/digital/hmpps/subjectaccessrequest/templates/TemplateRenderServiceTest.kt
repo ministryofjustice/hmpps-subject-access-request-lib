@@ -60,6 +60,7 @@ class TemplateRenderServiceTest {
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>DPS Location: </td><td>Cell 1234</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nomis Location: </td><td>Infirmary</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Boolean Value: </td><td>Yes</td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Camel Case: </td><td>hello world</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data: </td><td>nestedValue1</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data: </td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
 
@@ -250,6 +251,26 @@ class TemplateRenderServiceTest {
     }
   }
 
+  @Nested
+  inner class ConvertCamelCase {
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "               | No Data Held",
+        " ''            | No Data Held",
+        " 'Hello World' | Hello World",
+        " 'HelloWorld'  | hello world",
+      ],
+      delimiter = '|',
+    )
+    fun `should convert field to expected camel case value`(input: String?, expected: String) {
+      assertContainsExpectedValueOnce(
+        actual = renderReportHtml(TestServiceData(camelCaseVal = input)),
+        expectValue = "<tr><td>Camel Case: </td><td>${expected}</td></tr>",
+      )
+    }
+  }
 
   private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
     RenderParameters(
@@ -275,6 +296,7 @@ class TemplateRenderServiceTest {
     val dpsLocationId: String? = null,
     val nomisLocationId: Int? = null,
     val booleanVal: Any? = null,
+    val camelCaseVal: String? = null,
     val userId: String? = null,
     val moreData: Map<String, Any> = emptyMap(),
     val arrayData: MutableList<String> = mutableListOf(),
@@ -287,6 +309,7 @@ class TemplateRenderServiceTest {
       dpsLocationId = "1234",
       nomisLocationId = 789,
       booleanVal = true,
+      camelCaseVal = "HelloWorld",
       userId = "354703",
       moreData = mapOf(
         "nestedKey" to "nestedValue1",
