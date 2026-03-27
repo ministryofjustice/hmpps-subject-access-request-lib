@@ -249,7 +249,7 @@ class TemplateRenderServiceTest {
     fun `should convert boolean field to expected value`(input: Any?, expected: String) {
       assertContainsExpectedValueOnce(
         actual = renderReportHtml(TestServiceData(booleanVal = input)),
-        expectValue = "<tr><td>Boolean Value: </td><td>${expected}</td></tr>",
+        expectValue = "<tr><td>Boolean Value: </td><td>$expected</td></tr>",
       )
     }
   }
@@ -270,7 +270,7 @@ class TemplateRenderServiceTest {
     fun `should convert field to expected camel case value`(input: String?, expected: String) {
       assertContainsExpectedValueOnce(
         actual = renderReportHtml(TestServiceData(camelCaseVal = input)),
-        expectValue = "<tr><td>Camel Case: </td><td>${expected}</td></tr>",
+        expectValue = "<tr><td>Camel Case: </td><td>$expected</td></tr>",
       )
     }
   }
@@ -297,7 +297,7 @@ class TemplateRenderServiceTest {
     ) {
       assertContainsExpectedValueOnce(
         actual = renderReportHtml(TestServiceData(testKey = value1, testKey2 = value2)),
-        expectValue = "<tr><td>String Equality: </td><td>${expected}</td></tr>",
+        expectValue = "<tr><td>String Equality: </td><td>$expected</td></tr>",
       )
     }
   }
@@ -314,7 +314,6 @@ class TemplateRenderServiceTest {
     assertThat(actual).isNotNull
     assertThat(actual.toStringValue()).containsOnlyOnce(expectValue)
   }
-
 
   private fun getResource(path: String): String = this::class.java.getResource(path)
     ?.readText()
