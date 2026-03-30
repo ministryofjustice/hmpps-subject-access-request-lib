@@ -353,9 +353,9 @@ class TemplateRenderServiceTest {
     @CsvSource(
       value = [
         // 1 digit precision
-        "2025-01-01T12:34:56Z               | 01 January 2025, 12:34:56 pm",
-        "2025-01-01T12:34:56+01:00          | 01 January 2025, 11:34:56 am",
-        "2025-01-01T12:34:56-01:00          | 01 January 2025, 1:34:56 pm",
+        "2025-01-01T12:34:56Z       | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56+01:00  | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56-01:00  | 01 January 2025, 1:34:56 pm",
       ],
       delimiter = '|',
     )
