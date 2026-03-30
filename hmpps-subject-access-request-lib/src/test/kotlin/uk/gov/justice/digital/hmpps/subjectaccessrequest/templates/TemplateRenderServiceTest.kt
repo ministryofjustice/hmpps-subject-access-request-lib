@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EmptySource
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -61,7 +64,6 @@ class TemplateRenderServiceTest {
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nomis Location: </td><td>Infirmary</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Boolean Value: </td><td>Yes</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Camel Case: </td><td>hello world</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Camel Case: </td><td>hello world</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>String Equality: </td><td>true</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data: </td><td>nestedValue1</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data: </td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
@@ -92,14 +94,9 @@ class TemplateRenderServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-      value = [
-        "      | ",
-        " ''   | ",
-        " '  ' | ",
-      ],
-      delimiter = '|',
-    )
+    @NullSource
+    @EmptySource
+    @ValueSource(strings = ["  "])
     fun `should render no data held if id is null or empty`(id: String?) {
       val actual = renderReportHtml(TestServiceData(userId = id))
 
@@ -134,13 +131,8 @@ class TemplateRenderServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-      value = [
-        "      | ",
-        " ''   | ",
-      ],
-      delimiter = '|',
-    )
+    @NullSource
+    @EmptySource
     fun `should render no data held if id is null or empty`(id: String?) {
       val actual = renderReportHtml(TestServiceData(prisonCode = id))
 
@@ -175,13 +167,8 @@ class TemplateRenderServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-      value = [
-        "      | ",
-        " ''   | ",
-      ],
-      delimiter = '|',
-    )
+    @NullSource
+    @EmptySource
     fun `should render no data held if id is null or empty`(id: String?) {
       val actual = renderReportHtml(TestServiceData(dpsLocationId = id))
 
