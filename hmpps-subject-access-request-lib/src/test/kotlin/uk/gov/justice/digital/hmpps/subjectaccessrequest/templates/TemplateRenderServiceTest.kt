@@ -52,8 +52,6 @@ class TemplateRenderServiceTest {
       assertThat(actual).isNotNull
 
       val generatedHtml = actual.toStringValue()
-      println(generatedHtml)
-
       assertThat(generatedHtml).contains("<h2>Test Service Data</h2>")
 
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Test Key:</td><td>testValue1</td></tr>")
