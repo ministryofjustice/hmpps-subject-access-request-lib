@@ -15,7 +15,8 @@
       "arrayData": [
         "arrayValue1-1",
         "arrayValue1-2"
-      ]
+      ],
+      "dateField": "2023-07-26T12:59:57.961+01:00"
     }
 ]
 -->
@@ -34,5 +35,12 @@
         <tr><td>String Equality: </td><td>{{ eq testKey testKey2 }}</td></tr>
         <tr><td>Nested Data: </td><td>{{moreData.nestedKey}}</td></tr>
         <tr><td>Array Data: </td><td><ul>{{#arrayData}}<li>{{.}}</li>{{/arrayData}}</ul></td></tr>
+        <tr>
+            <td>Array Data Indexed: </td>
+            <td>
+                <ul>{{#arrayData}}<li>Array data {{ getIndexPlusOne @index }} - {{.}}</li>{{/arrayData}}</ul>
+            </td>
+        </tr>
+        <tr><td>Formatted Date field: </td><td>{{optionalValue (formatDate dateField) }}</td></tr>
     </table>
 {{/.}}

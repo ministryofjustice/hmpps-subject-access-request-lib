@@ -52,6 +52,8 @@ class TemplateRenderServiceTest {
       assertThat(actual).isNotNull
 
       val generatedHtml = actual.toStringValue()
+      println(generatedHtml)
+
       assertThat(generatedHtml).contains("<h2>Test Service Data</h2>")
 
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Test Key:</td><td>testValue1</td></tr>")
@@ -65,6 +67,10 @@ class TemplateRenderServiceTest {
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>String Equality: </td><td>true</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data: </td><td>nestedValue1</td></tr>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data: </td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<td>Array Data Indexed: </td>")
+      assertThat(generatedHtml).containsOnlyOnce("<li>Array data 1 - arrayValue1-1</li>")
+      assertThat(generatedHtml).containsOnlyOnce("<li>Array data 2 - arrayValue1-2</li>")
+      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Formatted Date field: </td><td>26 July 2023, 12:59:57 pm</td></tr>")
 
       verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
       verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
@@ -302,6 +308,171 @@ class TemplateRenderServiceTest {
     }
   }
 
+  /**
+   * See [DateConversionHelper].dateConversions for date patterns.
+   */
+  @Nested
+  inner class FormatDate {
+
+    // Date pattern 1 - "2024-05-01"
+    @Test
+    fun `should format date pattern 1 correctly`() {
+      assertContainsExpectedFormattedDateValue(input = "2001-03-01", expected = "01 March 2001")
+    }
+
+    // Date pattern 2 - "01/05/2024"
+    @Test
+    fun `should format date pattern 2 correctly`() {
+      assertContainsExpectedFormattedDateValue(input = "25/12/1999", expected = "25 December 1999")
+    }
+
+    // Date time pattern 3
+    // "2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789]"
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "2025-01-01T12:34:56.1          | 01 January 2025, 12:34:56 pm",
+        "2024-02-02T11:33:55.12         | 02 February 2024, 11:33:55 am",
+        "2023-03-03T10:32:54.123        | 03 March 2023, 10:32:54 am",
+        "2022-04-04T09:31:53.1234       | 04 April 2022, 9:31:53 am",
+        "2021-05-05T13:30:52.12345      | 05 May 2021, 1:30:52 pm",
+        "2020-06-06T14:29:51.123456     | 06 June 2020, 2:29:51 pm",
+        "2019-07-07T15:28:50.123457     | 07 July 2019, 3:28:50 pm",
+        "2018-08-08T16:27:49.1234578    | 08 August 2018, 4:27:49 pm",
+        "2017-09-09T17:26:48.12345789   | 09 September 2017, 5:26:48 pm",
+      ],
+      delimiter = '|',
+    )
+    fun `should format date time pattern 3 correctly`(input: String?, expected: String) {
+      assertContainsExpectedFormattedDateValue(input, expected)
+    }
+
+    // Date time pattern 4
+    // "2024-05-01T12:34:56[Z|+00:00|-00:00]"
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        // 1 digit precision
+        "2025-01-01T12:34:56Z               | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56+01:00          | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56-01:00          | 01 January 2025, 1:34:56 pm",
+      ],
+      delimiter = '|',
+    )
+    fun `should format date time pattern 4 correctly`(input: String?, expected: String) {
+      assertContainsExpectedFormattedDateValue(input, expected)
+    }
+
+    // Date time pattern 5
+    // "2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789][Z|+00:00|-00:00]"
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        // 1 digit precision
+        "2025-01-01T12:34:56.1Z               | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.1+01:00          | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.1-01:00          | 01 January 2025, 1:34:56 pm",
+        // 2 digit precision
+        "2024-02-02T13:35:30.12Z              | 02 February 2024, 1:35:30 pm",
+        "2024-02-02T13:35:30.12+01:00         | 02 February 2024, 12:35:30 pm",
+        "2024-02-02T13:35:30.12-01:00         | 02 February 2024, 2:35:30 pm",
+        // 3 digit precision
+        "2023-03-03T14:36:31.123Z             | 03 March 2023, 2:36:31 pm",
+        "2023-03-03T14:36:31.123+01:00        | 03 March 2023, 1:36:31 pm",
+        "2023-03-03T14:36:31.123-01:00        | 03 March 2023, 3:36:31 pm",
+        // 4 digit precision - Result for remaining cases now impacted by UK Daylight savings.
+        "2022-04-04T15:37:32.1234Z            | 04 April 2022, 4:37:32 pm",
+        "2022-04-04T15:37:32.1234+01:00       | 04 April 2022, 3:37:32 pm",
+        "2022-04-04T15:37:32.1234-01:00       | 04 April 2022, 5:37:32 pm",
+        // 5 digit precision
+        "2021-05-05T15:38:33.12345Z           | 05 May 2021, 4:38:33 pm",
+        "2021-05-05T15:38:33.12345+01:00      | 05 May 2021, 3:38:33 pm",
+        "2021-05-05T15:38:33.12345-01:00      | 05 May 2021, 5:38:33 pm",
+        // 6 digit precision
+        "2020-06-06T15:39:34.123456Z          | 06 June 2020, 4:39:34 pm",
+        "2020-06-06T15:39:34.123456+01:00     | 06 June 2020, 3:39:34 pm",
+        "2020-06-06T15:39:34.123456-01:00     | 06 June 2020, 5:39:34 pm",
+        // 7 digit precision
+        "2019-07-07T15:40:35.1234567Z         | 07 July 2019, 4:40:35 pm",
+        "2019-07-07T15:40:35.1234567+01:00    | 07 July 2019, 3:40:35 pm",
+        "2019-07-07T15:40:35.1234567-01:00    | 07 July 2019, 5:40:35 pm",
+        // 8 digit precision
+        "2018-08-08T15:41:36.12345678Z        | 08 August 2018, 4:41:36 pm",
+        "2018-08-08T15:41:36.12345678+01:00   | 08 August 2018, 3:41:36 pm",
+        "2018-08-08T15:41:36.12345678-01:00   | 08 August 2018, 5:41:36 pm",
+        // 9 digit precision
+        "2017-09-09T15:42:37.123456789Z       | 09 September 2017, 4:42:37 pm",
+        "2017-09-09T15:42:37.123456789+01:00  | 09 September 2017, 3:42:37 pm",
+        "2017-09-09T15:42:37.123456789-01:00  | 09 September 2017, 5:42:37 pm",
+      ],
+      delimiter = '|',
+    )
+    fun `should format date time pattern 5 correctly`(input: String?, expected: String) {
+      assertContainsExpectedFormattedDateValue(input, expected)
+    }
+
+    // Date time pattern 6 - "01/05/2024 12:34
+    @Test
+    fun `should format date time pattern 6 correctly`() {
+      assertContainsExpectedFormattedDateValue("01/05/2024 12:34", "01 May 2024, 12:34 pm")
+    }
+
+    // Date time pattern 7 - "01/05/2024 12:34:56
+    @Test
+    fun `should format date time pattern 7 correctly`() {
+      assertContainsExpectedFormattedDateValue("01/05/2024 12:34:56", "01 May 2024, 12:34:56 pm")
+    }
+
+    // Date time pattern 8 - "2024-05-01 12:34:56[.1|12|123|1234|12345|123456][+00]"
+    @ParameterizedTest
+    @CsvSource(
+      delimiter = '|',
+      value = [
+        "2026-01-01 12:00:00.1          | 01 January 2026, 12:00:00 pm",
+        "2026-01-01 12:00:00.1+00       | 01 January 2026, 12:00:00 pm",
+        "2026-01-01 13:30:01.12         | 01 January 2026, 1:30:01 pm",
+        "2026-01-01 13:30:01.12+00      | 01 January 2026, 1:30:01 pm",
+        "2026-01-01 14:00:00.123        | 01 January 2026, 2:00:00 pm",
+        "2026-01-01 14:00:00.123+00     | 01 January 2026, 2:00:00 pm",
+        "2026-01-01 14:30:02.1234       | 01 January 2026, 2:30:02 pm",
+        "2026-01-01 14:30:02.1234+00    | 01 January 2026, 2:30:02 pm",
+        "2026-01-01 15:00:00.12345      | 01 January 2026, 3:00:00 pm",
+        "2026-01-01 15:00:00.12345+00   | 01 January 2026, 3:00:00 pm",
+        "2026-01-01 15:30:03.123456     | 01 January 2026, 3:30:03 pm",
+        "2026-01-01 15:30:03.123456+00  | 01 January 2026, 3:30:03 pm",
+      ],
+    )
+    fun `should format date time pattern 8 correctly`(input: String, expected: String) {
+      assertContainsExpectedFormattedDateValue(input, expected)
+    }
+
+    // Date time pattern 9 - "2024-05-01T12:34[Z]"
+    @ParameterizedTest
+    @CsvSource(
+      delimiter = '|',
+      value = [
+        "2024-05-01T12:34  | 01 May 2024, 12:34 pm",
+        "2024-05-01T12:34Z | 01 May 2024, 12:34 pm",
+      ],
+    )
+    fun `should format date time pattern 9 correctly`(input: String, expected: String) {
+      assertContainsExpectedFormattedDateValue(input, expected)
+    }
+
+    // Date time pattern 10 - 2025-04-03T14:34:41+0100
+    @Test
+    fun `should format date time pattern 10 correctly`() {
+      assertContainsExpectedFormattedDateValue("2025-04-03T14:34:41+0100", "03 April 2025, 2:34:41 pm")
+    }
+
+    private fun assertContainsExpectedFormattedDateValue(input: String?, expected: String) {
+      assertContainsExpectedValueOnce(
+        actual = renderReportHtml(TestServiceData(dateField = input)),
+        expectValue = "<tr><td>Formatted Date field: </td><td>$expected</td></tr>",
+      )
+    }
+  }
+
   private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
     RenderParameters(
       templateVersion = "1.0",
@@ -330,6 +501,7 @@ class TemplateRenderServiceTest {
     val userId: String? = null,
     val moreData: Map<String, Any> = emptyMap(),
     val arrayData: MutableList<String> = mutableListOf(),
+    val dateField: String? = null,
   )
 
   private val testServiceData: List<TestServiceData> = listOf(
@@ -346,6 +518,7 @@ class TemplateRenderServiceTest {
         "nestedKey" to "nestedValue1",
       ),
       arrayData = mutableListOf("arrayValue1-1", "arrayValue1-2"),
+      dateField = "2023-07-26T12:59:57.961+01:00",
     ),
   )
 
