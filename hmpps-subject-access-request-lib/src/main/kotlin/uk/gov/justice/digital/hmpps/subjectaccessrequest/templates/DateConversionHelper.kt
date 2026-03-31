@@ -9,62 +9,70 @@ import java.util.Locale
 class DateConversionHelper {
   companion object {
     var dateConversions: ArrayList<DateConversion> = arrayListOf(
-      // "2024-05-01"
+      // Date pattern 1 - "2024-05-01"
       DateConversion(
         "^\\d{4}-\\d{2}-\\d{2}$".toRegex(),
         "yyyy-MM-dd",
         "dd MMMM yyyy",
       ),
-      // "01/05/2024"
+      // Date pattern 2 - "01/05/2024"
       DateConversion(
         "^\\d{2}/\\d{2}/\\d{4}$".toRegex(),
         "dd/MM/yyyy",
         "dd MMMM yyyy",
       ),
-      // "2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789]"
+      // Date time pattern 3
+      // 2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789]"
       DateConversion(
         "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?$".toRegex(),
         "yyyy-MM-dd'T'HH:mm:ss",
         "dd MMMM yyyy, h:mm:ss a",
       ),
-      // "2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789][Z|+00:00|-00:00]"
+      // Date time pattern 4
+      // "2024-05-01T12:34:56[Z|+00:00|-00:00]"
       DateConversion(
-        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$".toRegex(),
+        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(Z|[+-]\\d{2}:\\d{2})$".toRegex(),
         "yyyy-MM-dd'T'HH:mm:ssX",
         "dd MMMM yyyy, h:mm:ss a",
       ),
-      // "01/05/2024 12:34
+      // Date time pattern 5
+      // "2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789][Z|+00:00|-00:00]"
+      DateConversion(
+        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$".toRegex(),
+        "yyyy-MM-dd'T'HH:mm:ss.nX",
+        "dd MMMM yyyy, h:mm:ss a",
+      ),
+      // Date time pattern 6 - "01/05/2024 12:34
       DateConversion(
         "^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}$".toRegex(),
         "dd/MM/yyyy HH:mm",
         "dd MMMM yyyy, h:mm a",
       ),
-      // "01/05/2024 12:34:56
+      // Date time pattern 7 - "01/05/2024 12:34:56
       DateConversion(
         "^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}:\\d{2}$".toRegex(),
         "dd/MM/yyyy HH:mm:ss",
         "dd MMMM yyyy, h:mm:ss a",
       ),
-      // "2024-05-01 12:34:56[.1|12|123|1234|12345|123456][+00]"
+      // Date time pattern 8 - "2024-05-01 12:34:56[.1|12|123|1234|12345|123456][+00]"
       DateConversion(
         "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})(\\+\\d{2})?$".toRegex(),
         "yyyy-MM-dd HH:mm:ss",
         "dd MMMM yyyy, h:mm:ss a",
       ),
-      // "2024-05-01T12:34[Z]"
+      // Date time pattern 9 - "2024-05-01T12:34[Z]"
       DateConversion(
         "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}Z?$".toRegex(),
         "yyyy-MM-dd'T'HH:mm",
         "dd MMMM yyyy, h:mm a",
       ),
 
-      // 2025-04-03T14:34:41+0100
+      // Date time pattern 10 - 2025-04-03T14:34:41+0100
       DateConversion(
         "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}\\d{2}?$".toRegex(),
         "yyyy-MM-dd'T'HH:mm:ssZ",
         "dd MMMM yyyy, h:mm:ss a",
       ),
-
     )
   }
 
