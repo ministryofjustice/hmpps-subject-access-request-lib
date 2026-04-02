@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.helger.css.reader.CSSReader
+import com.helger.css.writer.CSSWriter
+import com.helger.css.writer.CSSWriterSettings
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
@@ -30,13 +33,6 @@ import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.Optional
 import javax.sql.DataSource
-
-import com.helger.css.ECSSVersion
-import com.helger.css.reader.CSSReader
-import com.helger.css.writer.CSSWriter
-import com.helger.css.decl.*
-import com.helger.css.writer.CSSWriterSettings
-
 
 class SarIntegrationTestHelper(
   val jwtAuthHelper: JwtAuthorisationHelper,
@@ -184,11 +180,7 @@ class SarIntegrationTestHelper(
   }
 
   private fun normalizeCss(css: String): String {
-    val stylesheet = CSSReader.readFromString(css, ECSSVersion.LATEST) ?: return css
-
-//    val sortedRules = stylesheet.allStyleRules.sortedBy { it.allSelectors.firstOrNull?.asCSSString }
-//    stylesheet.removeAllRules()
-//    sortedRules.forEach(stylesheet::addRule)
+    val stylesheet = CSSReader.readFromString(css) ?: return css
 
     stylesheet.allStyleRules.forEach { rule ->
       val declarations = rule.allDeclarations.sortedBy { it.property }
@@ -196,7 +188,7 @@ class SarIntegrationTestHelper(
       declarations.forEach(rule::addDeclaration)
     }
 
-    val settings = CSSWriterSettings(ECSSVersion.LATEST).apply {
+    val settings = CSSWriterSettings().apply {
       isOptimizedOutput = true
       isRemoveUnnecessaryCode = true
     }
