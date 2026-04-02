@@ -31,6 +31,13 @@ import java.time.LocalDate
 import java.util.Optional
 import javax.sql.DataSource
 
+import com.helger.css.ECSSVersion
+import com.helger.css.reader.CSSReader
+import com.helger.css.writer.CSSWriter
+import com.helger.css.decl.*
+import com.helger.css.writer.CSSWriterSettings
+
+
 class SarIntegrationTestHelper(
   val jwtAuthHelper: JwtAuthorisationHelper,
   val expectedApiResponsePath: String,
@@ -168,19 +175,33 @@ class SarIntegrationTestHelper(
     }
     sortAttributes(doc)
 
-    // Normalize CSS inside <style> tags as Jsoup won't pretty-print or reflow CSS text
     doc.select("style").forEach { styleEl ->
-      val css = styleEl.data()
-      val normalizedCss =
-        css
-          .lines()
-          .map { it.trimStart() }.joinToString("\n") { it.replace(Regex("\\s+$"), "") }
-          .replace(Regex("\n{2,}"), "\n")
-          .trim()
+      val normalizedCss = normalizeCss(styleEl.data())
       styleEl.text(normalizedCss)
     }
 
     return doc.outerHtml()
+  }
+
+  private fun normalizeCss(css: String): String {
+    val stylesheet = CSSReader.readFromString(css, ECSSVersion.LATEST) ?: return css
+
+//    val sortedRules = stylesheet.allStyleRules.sortedBy { it.allSelectors.firstOrNull?.asCSSString }
+//    stylesheet.removeAllRules()
+//    sortedRules.forEach(stylesheet::addRule)
+
+    stylesheet.allStyleRules.forEach { rule ->
+      val declarations = rule.allDeclarations.sortedBy { it.property }
+      rule.removeAllDeclarations()
+      declarations.forEach(rule::addDeclaration)
+    }
+
+    val settings = CSSWriterSettings(ECSSVersion.LATEST).apply {
+      isOptimizedOutput = true
+      isRemoveUnnecessaryCode = true
+    }
+
+    return CSSWriter(settings).getCSSAsString(stylesheet)
   }
 
   fun stubFindPrisonNameWith(prisonName: String) {
