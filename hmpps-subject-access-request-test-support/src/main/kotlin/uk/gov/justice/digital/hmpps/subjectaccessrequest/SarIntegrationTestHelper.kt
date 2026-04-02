@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.helger.css.reader.CSSReader
+import com.helger.css.writer.CSSWriter
+import com.helger.css.writer.CSSWriterSettings
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
@@ -168,19 +171,29 @@ class SarIntegrationTestHelper(
     }
     sortAttributes(doc)
 
-    // Normalize CSS inside <style> tags as Jsoup won't pretty-print or reflow CSS text
     doc.select("style").forEach { styleEl ->
-      val css = styleEl.data()
-      val normalizedCss =
-        css
-          .lines()
-          .map { it.trimStart() }.joinToString("\n") { it.replace(Regex("\\s+$"), "") }
-          .replace(Regex("\n{2,}"), "\n")
-          .trim()
+      val normalizedCss = normalizeCss(styleEl.data())
       styleEl.text(normalizedCss)
     }
 
     return doc.outerHtml()
+  }
+
+  private fun normalizeCss(css: String): String {
+    val stylesheet = CSSReader.readFromString(css) ?: return css
+
+    stylesheet.allStyleRules.forEach { rule ->
+      val declarations = rule.allDeclarations.sortedBy { it.property }
+      rule.removeAllDeclarations()
+      declarations.forEach(rule::addDeclaration)
+    }
+
+    val settings = CSSWriterSettings().apply {
+      isOptimizedOutput = true
+      isRemoveUnnecessaryCode = true
+    }
+
+    return CSSWriter(settings).getCSSAsString(stylesheet)
   }
 
   fun stubFindPrisonNameWith(prisonName: String) {

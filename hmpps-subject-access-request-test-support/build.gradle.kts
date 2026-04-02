@@ -21,6 +21,7 @@ dependencies {
   implementation("org.flywaydb:flyway-core")
   implementation("jakarta.persistence:jakarta.persistence-api")
   implementation("org.jsoup:jsoup:1.22.1")
+  implementation("com.helger:ph-css:8.1.1")
 }
 
 publishing {
