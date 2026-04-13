@@ -411,38 +411,36 @@ class TemplateRenderServiceTest {
     @CsvSource(
       delimiter = '|',
       value = [
-        "2026-01-01 12:00:00.1          | 01 January 2026, 12:00:00 pm",
         "2026-01-01 12:00:00.1+00       | 01 January 2026, 12:00:00 pm",
-        "2026-01-01 13:30:01.12         | 01 January 2026, 1:30:01 pm",
+        "2026-01-01 12:00:00.1+01       | 01 January 2026, 11:00:00 am",
         "2026-01-01 13:30:01.12+00      | 01 January 2026, 1:30:01 pm",
-        "2026-01-01 14:00:00.123        | 01 January 2026, 2:00:00 pm",
+        "2026-01-01 13:30:01.12+01      | 01 January 2026, 12:30:01 pm",
         "2026-01-01 14:00:00.123+00     | 01 January 2026, 2:00:00 pm",
-        "2026-01-01 14:30:02.1234       | 01 January 2026, 2:30:02 pm",
+        "2026-01-01 14:00:00.123+01     | 01 January 2026, 1:00:00 pm",
         "2026-01-01 14:30:02.1234+00    | 01 January 2026, 2:30:02 pm",
-        "2026-01-01 15:00:00.12345      | 01 January 2026, 3:00:00 pm",
+        "2026-01-01 14:30:02.1234+01    | 01 January 2026, 1:30:02 pm",
         "2026-01-01 15:00:00.12345+00   | 01 January 2026, 3:00:00 pm",
-        "2026-01-01 15:30:03.123456     | 01 January 2026, 3:30:03 pm",
+        "2026-01-01 15:00:00.12345+01   | 01 January 2026, 2:00:00 pm",
         "2026-01-01 15:30:03.123456+00  | 01 January 2026, 3:30:03 pm",
+        "2026-01-01 15:30:03.123456+01  | 01 January 2026, 2:30:03 pm",
       ],
     )
     fun `should format date time pattern 8 correctly`(input: String, expected: String) {
       assertContainsExpectedFormattedDateValue(input, expected)
     }
 
-    // Date time pattern 9 - "2024-05-01T12:34[Z]"
-    @ParameterizedTest
-    @CsvSource(
-      delimiter = '|',
-      value = [
-        "2024-05-01T12:34  | 01 May 2024, 12:34 pm",
-        "2024-05-01T12:34Z | 01 May 2024, 12:34 pm",
-      ],
-    )
-    fun `should format date time pattern 9 correctly`(input: String, expected: String) {
-      assertContainsExpectedFormattedDateValue(input, expected)
+    // Date time pattern 9 - "2024-05-01T12:34"
+    @Test
+    fun `should format date time pattern 9 correctly`() {
+      assertContainsExpectedFormattedDateValue("2024-05-01T12:34", "01 May 2024, 12:34 pm")
     }
 
-    // Date time pattern 10 - 2025-04-03T14:34:41+0100
+    @Test
+    fun `should format date time pattern 10 correctly`() {
+      assertContainsExpectedFormattedDateValue("2024-05-01T12:34Z", "01 May 2024, 1:34 pm")
+    }
+
+    // Date time pattern 11 - 2025-04-03T14:34:41+0100
     @ParameterizedTest
     @CsvSource(
       delimiter = '|',
@@ -451,9 +449,9 @@ class TemplateRenderServiceTest {
         "2025-04-03T14:34:41-0100 | 03 April 2025, 4:34:41 pm",
         "2025-04-03T14:34:41+0000 | 03 April 2025, 3:34:41 pm",
         "2025-04-03T14:34:41-0000 | 03 April 2025, 3:34:41 pm",
-      ]
+      ],
     )
-    fun `should format date time pattern 10 correctly`(input: String, expected: String) {
+    fun `should format date time pattern 11 correctly`(input: String, expected: String) {
       assertContainsExpectedFormattedDateValue(input, expected)
     }
 

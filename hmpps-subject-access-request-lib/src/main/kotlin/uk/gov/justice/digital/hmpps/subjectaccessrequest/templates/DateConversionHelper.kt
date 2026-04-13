@@ -48,6 +48,7 @@ class DateConversionHelper {
         "dd MMMM yyyy, h:mm:ss a",
         true,
       ),
+
       // Date time pattern 6 - "01/05/2024 12:34
       DateConversion(
         "^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}$".toRegex(),
@@ -55,6 +56,7 @@ class DateConversionHelper {
         "dd MMMM yyyy, h:mm a",
         false,
       ),
+
       // Date time pattern 7 - "01/05/2024 12:34:56
       DateConversion(
         "^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}:\\d{2}$".toRegex(),
@@ -62,10 +64,11 @@ class DateConversionHelper {
         "dd MMMM yyyy, h:mm:ss a",
         false,
       ),
+
       // Date time pattern 8 - "2024-05-01 12:34:56[.1|12|123|1234|12345|123456][+00]"
       DateConversion(
         "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})(\\+\\d{2})?$".toRegex(),
-        "yyyy-MM-dd HH:mm:ss",
+        "yyyy-MM-dd HH:mm:ss.nX",
         "dd MMMM yyyy, h:mm:ss a",
         true,
       ),
@@ -75,15 +78,15 @@ class DateConversionHelper {
         "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$".toRegex(),
         "yyyy-MM-dd'T'HH:mm",
         "dd MMMM yyyy, h:mm a",
-        false
+        false,
       ),
 
       // Date time pattern 10 - "2024-05-01T12:34Z"
       DateConversion(
         "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}Z$".toRegex(),
-        "yyyy-MM-dd'T'HH:mm",
+        "yyyy-MM-dd'T'HH:mmX",
         "dd MMMM yyyy, h:mm a",
-        true
+        true,
       ),
 
       // Date time pattern 11 - 2025-04-03T14:34:41+0100
@@ -106,7 +109,7 @@ class DateConversionHelper {
             .ofPattern(dateConversion.outputFormat)
             .withLocale(Locale.UK)
             .withZone(ZoneId.of("Europe/London"))
-        } else  {
+        } else {
           DateTimeFormatter
             .ofPattern(dateConversion.outputFormat)
             .withLocale(Locale.UK)
