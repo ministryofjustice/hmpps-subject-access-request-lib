@@ -332,8 +332,7 @@ class TemplateRenderServiceTest {
       assertContainsExpectedFormattedDateValue(input, expected)
     }
 
-    // Date time pattern 4
-    // "2024-05-01T12:34:56[Z|+00:00|-00:00]"
+    // Date time pattern 4 - "2024-05-01T12:34:56[Z|+00:00|-00:00]"
     @ParameterizedTest
     @CsvSource(
       value = [
@@ -348,8 +347,7 @@ class TemplateRenderServiceTest {
       assertContainsExpectedFormattedDateValue(input, expected)
     }
 
-    // Date time pattern 5
-    // "2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789][Z|+00:00|-00:00]"
+    // Date time pattern 5 - "2024-05-01T12:34:56[.1|12|123|1234|12345|123456|1234567|12345678|123456789][Z|+00:00|-00:00]"
     @ParameterizedTest
     @CsvSource(
       value = [
@@ -358,37 +356,37 @@ class TemplateRenderServiceTest {
         "2025-01-01T12:34:56.1+01:00          | 01 January 2025, 11:34:56 am",
         "2025-01-01T12:34:56.1-01:00          | 01 January 2025, 1:34:56 pm",
         // 2 digit precision
-        "2024-02-02T13:35:30.12Z              | 02 February 2024, 1:35:30 pm",
-        "2024-02-02T13:35:30.12+01:00         | 02 February 2024, 12:35:30 pm",
-        "2024-02-02T13:35:30.12-01:00         | 02 February 2024, 2:35:30 pm",
+        "2025-01-01T12:34:56.12Z              | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.12+01:00         | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.12-01:00         | 01 January 2025, 1:34:56 pm",
         // 3 digit precision
-        "2023-03-03T14:36:31.123Z             | 03 March 2023, 2:36:31 pm",
-        "2023-03-03T14:36:31.123+01:00        | 03 March 2023, 1:36:31 pm",
-        "2023-03-03T14:36:31.123-01:00        | 03 March 2023, 3:36:31 pm",
-        // 4 digit precision - Result for remaining cases now impacted by UK Daylight savings.
-        "2022-04-04T15:37:32.1234Z            | 04 April 2022, 4:37:32 pm",
-        "2022-04-04T15:37:32.1234+01:00       | 04 April 2022, 3:37:32 pm",
-        "2022-04-04T15:37:32.1234-01:00       | 04 April 2022, 5:37:32 pm",
+        "2025-01-01T12:34:56.123Z             | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.123+01:00        | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.123-01:00        | 01 January 2025, 1:34:56 pm",
+        // 4 digit precision
+        "2025-01-01T12:34:56.1234Z            | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.1234+01:00       | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.1234-01:00       | 01 January 2025, 1:34:56 pm",
         // 5 digit precision
-        "2021-05-05T15:38:33.12345Z           | 05 May 2021, 4:38:33 pm",
-        "2021-05-05T15:38:33.12345+01:00      | 05 May 2021, 3:38:33 pm",
-        "2021-05-05T15:38:33.12345-01:00      | 05 May 2021, 5:38:33 pm",
+        "2025-01-01T12:34:56.12345Z           | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.12345+01:00      | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.12345-01:00      | 01 January 2025, 1:34:56 pm",
         // 6 digit precision
-        "2020-06-06T15:39:34.123456Z          | 06 June 2020, 4:39:34 pm",
-        "2020-06-06T15:39:34.123456+01:00     | 06 June 2020, 3:39:34 pm",
-        "2020-06-06T15:39:34.123456-01:00     | 06 June 2020, 5:39:34 pm",
+        "2025-01-01T12:34:56.123456Z          | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.123456+01:00     | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.123456-01:00     | 01 January 2025, 1:34:56 pm",
         // 7 digit precision
-        "2019-07-07T15:40:35.1234567Z         | 07 July 2019, 4:40:35 pm",
-        "2019-07-07T15:40:35.1234567+01:00    | 07 July 2019, 3:40:35 pm",
-        "2019-07-07T15:40:35.1234567-01:00    | 07 July 2019, 5:40:35 pm",
+        "2025-01-01T12:34:56.1234567Z         | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.1234567+01:00    | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.1234567-01:00    | 01 January 2025, 1:34:56 pm",
         // 8 digit precision
-        "2018-08-08T15:41:36.12345678Z        | 08 August 2018, 4:41:36 pm",
-        "2018-08-08T15:41:36.12345678+01:00   | 08 August 2018, 3:41:36 pm",
-        "2018-08-08T15:41:36.12345678-01:00   | 08 August 2018, 5:41:36 pm",
+        "2025-01-01T12:34:56.12345678Z        | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.12345678+01:00   | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.12345678-01:00   | 01 January 2025, 1:34:56 pm",
         // 9 digit precision
-        "2017-09-09T15:42:37.123456789Z       | 09 September 2017, 4:42:37 pm",
-        "2017-09-09T15:42:37.123456789+01:00  | 09 September 2017, 3:42:37 pm",
-        "2017-09-09T15:42:37.123456789-01:00  | 09 September 2017, 5:42:37 pm",
+        "2025-01-01T12:34:56.123456789Z       | 01 January 2025, 12:34:56 pm",
+        "2025-01-01T12:34:56.123456789+01:00  | 01 January 2025, 11:34:56 am",
+        "2025-01-01T12:34:56.123456789-01:00  | 01 January 2025, 1:34:56 pm",
       ],
       delimiter = '|',
     )
@@ -413,41 +411,48 @@ class TemplateRenderServiceTest {
     @CsvSource(
       delimiter = '|',
       value = [
-        "2026-01-01 12:00:00.1          | 01 January 2026, 12:00:00 pm",
         "2026-01-01 12:00:00.1+00       | 01 January 2026, 12:00:00 pm",
-        "2026-01-01 13:30:01.12         | 01 January 2026, 1:30:01 pm",
+        "2026-01-01 12:00:00.1+01       | 01 January 2026, 11:00:00 am",
         "2026-01-01 13:30:01.12+00      | 01 January 2026, 1:30:01 pm",
-        "2026-01-01 14:00:00.123        | 01 January 2026, 2:00:00 pm",
+        "2026-01-01 13:30:01.12+01      | 01 January 2026, 12:30:01 pm",
         "2026-01-01 14:00:00.123+00     | 01 January 2026, 2:00:00 pm",
-        "2026-01-01 14:30:02.1234       | 01 January 2026, 2:30:02 pm",
+        "2026-01-01 14:00:00.123+01     | 01 January 2026, 1:00:00 pm",
         "2026-01-01 14:30:02.1234+00    | 01 January 2026, 2:30:02 pm",
-        "2026-01-01 15:00:00.12345      | 01 January 2026, 3:00:00 pm",
+        "2026-01-01 14:30:02.1234+01    | 01 January 2026, 1:30:02 pm",
         "2026-01-01 15:00:00.12345+00   | 01 January 2026, 3:00:00 pm",
-        "2026-01-01 15:30:03.123456     | 01 January 2026, 3:30:03 pm",
+        "2026-01-01 15:00:00.12345+01   | 01 January 2026, 2:00:00 pm",
         "2026-01-01 15:30:03.123456+00  | 01 January 2026, 3:30:03 pm",
+        "2026-01-01 15:30:03.123456+01  | 01 January 2026, 2:30:03 pm",
       ],
     )
     fun `should format date time pattern 8 correctly`(input: String, expected: String) {
       assertContainsExpectedFormattedDateValue(input, expected)
     }
 
-    // Date time pattern 9 - "2024-05-01T12:34[Z]"
+    // Date time pattern 9 - "2024-05-01T12:34"
+    @Test
+    fun `should format date time pattern 9 correctly`() {
+      assertContainsExpectedFormattedDateValue("2024-05-01T12:34", "01 May 2024, 12:34 pm")
+    }
+
+    @Test
+    fun `should format date time pattern 10 correctly`() {
+      assertContainsExpectedFormattedDateValue("2024-05-01T12:34Z", "01 May 2024, 1:34 pm")
+    }
+
+    // Date time pattern 11 - 2025-04-03T14:34:41+0100
     @ParameterizedTest
     @CsvSource(
       delimiter = '|',
       value = [
-        "2024-05-01T12:34  | 01 May 2024, 12:34 pm",
-        "2024-05-01T12:34Z | 01 May 2024, 12:34 pm",
+        "2025-04-03T14:34:41+0100 | 03 April 2025, 2:34:41 pm",
+        "2025-04-03T14:34:41-0100 | 03 April 2025, 4:34:41 pm",
+        "2025-04-03T14:34:41+0000 | 03 April 2025, 3:34:41 pm",
+        "2025-04-03T14:34:41-0000 | 03 April 2025, 3:34:41 pm",
       ],
     )
-    fun `should format date time pattern 9 correctly`(input: String, expected: String) {
+    fun `should format date time pattern 11 correctly`(input: String, expected: String) {
       assertContainsExpectedFormattedDateValue(input, expected)
-    }
-
-    // Date time pattern 10 - 2025-04-03T14:34:41+0100
-    @Test
-    fun `should format date time pattern 10 correctly`() {
-      assertContainsExpectedFormattedDateValue("2025-04-03T14:34:41+0100", "03 April 2025, 2:34:41 pm")
     }
 
     private fun assertContainsExpectedFormattedDateValue(input: String?, expected: String) {
