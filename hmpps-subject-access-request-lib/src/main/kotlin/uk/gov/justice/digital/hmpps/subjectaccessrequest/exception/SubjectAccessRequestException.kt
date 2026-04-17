@@ -120,3 +120,13 @@ class SubjectAccessRequestRetryExhaustedException(
     private const val RETRY_EXHAUSTED_ERROR_MESSAGE_PREFIX = "request failed and max retry attempts (%s) exhausted"
   }
 }
+
+class SubjectAccessRequestTemplateValidationException(
+  message: String,
+  cause: Throwable?,
+) : SubjectAccessRequestException(
+  message = message,
+  cause = cause,
+  subjectAccessRequestId = null,
+  params = null,
+)

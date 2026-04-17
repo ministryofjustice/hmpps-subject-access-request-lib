@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
 import com.github.jknack.handlebars.Handlebars
 import com.github.mustachejava.DefaultMustacheFactory
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplateValidationException
 import java.io.BufferedWriter
 import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
@@ -35,6 +36,16 @@ class TemplateRenderService(
       ).flush()
     }
     return out
+  }
+
+  fun validateTemplate(template: String): Unit {
+    try {
+      val handlebars = Handlebars()
+      handlebars.registerHelpers(templateHelpers)
+      handlebars.compileInline(template)
+    } catch (e: Exception) {
+      throw SubjectAccessRequestTemplateValidationException("SAR template failed validation check: ${e.message}", e)
+    }
   }
 
   private fun getStyleTemplate() = this::class.java.getResource(STYLE_TEMPLATE_PATH)?.readText() ?: ""
