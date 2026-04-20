@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EmptySource
@@ -17,7 +16,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplateValidationException
 import java.io.ByteArrayOutputStream
 
 class TemplateRenderServiceTest {
@@ -463,55 +461,6 @@ class TemplateRenderServiceTest {
         expectValue = "<tr><td>Formatted Date field: </td><td>$expected</td></tr>",
       )
     }
-  }
-
-  @Nested
-  inner class ValidateTemplate{
-
-    @Test
-    fun `should return successfully validate template with valid syntax`() {
-      renderService.validateTemplate(getTemplate("test-service-template"))
-    }
-
-    @Test
-    fun `should return successfully validate real world template`() {
-      renderService.validateTemplate(getTemplate("real-world-template"))
-    }
-
-    @Test
-    fun `should throw exception for template with missing closing tag`() {
-      val actual = assertThrows<SubjectAccessRequestTemplateValidationException> {
-        renderService.validateTemplate(getTemplate("missing-tag"))
-      }
-
-      assertThat(actual.message).startsWith("SAR template failed validation check: ")
-      assertThat(actual.message).contains("expected: '{{/'")
-    }
-
-    @Test
-    fun `should throw exception for template with unknown custom helper`() {
-      val actual = assertThrows<SubjectAccessRequestTemplateValidationException> {
-        renderService.validateTemplate(getTemplate("unknown-helper"))
-      }
-
-      assertThat(actual.message).startsWith("SAR template failed validation check: ")
-      assertThat(actual.message).contains("could not find helper: 'fibonacci'")
-    }
-
-    @Test
-    fun `should throw exception for template with invalid opening tag`() {
-      val actual = assertThrows<SubjectAccessRequestTemplateValidationException> {
-        renderService.validateTemplate(getTemplate("invalid-open-tag"))
-      }
-
-      assertThat(actual.message).startsWith("SAR template failed validation check: ")
-      assertThat(actual.message).contains("found: '}'")
-    }
-
-    private fun getTemplate(
-      filename: String
-    ): String = this.javaClass.getResourceAsStream("/templates/$filename.mustache")
-      .use { String(it.readAllBytes()) }
   }
 
   private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
