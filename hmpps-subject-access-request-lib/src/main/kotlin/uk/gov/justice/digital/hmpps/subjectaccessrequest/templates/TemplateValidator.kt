@@ -14,7 +14,7 @@ class TemplateValidator {
       )
   }
 
-  fun validateSyntax(template: String): Unit {
+  fun validateSyntax(template: String) {
     try {
       handlebars.compileInline(template)
     } catch (e: Exception) {
@@ -27,20 +27,12 @@ class TemplateValidator {
    * create a NoOp implementation allowing us to create the object without having to satisfy the dependency.
    */
   private class NoOpTemplateDataFetcherFacade : TemplateDataFetcherFacade {
-    override fun findPrisonNameByPrisonId(prisonId: String): String? {
-      throw UnsupportedOperationException()
-    }
+    override fun findPrisonNameByPrisonId(prisonId: String): String? = throw UnsupportedOperationException()
 
-    override fun findUserLastNameByUsername(userId: String): String? {
-      throw UnsupportedOperationException()
-    }
+    override fun findUserLastNameByUsername(userId: String): String? = throw UnsupportedOperationException()
 
-    override fun findLocationNameByNomisId(nomisId: Int): String? {
-      throw UnsupportedOperationException()
-    }
+    override fun findLocationNameByNomisId(nomisId: Int): String? = throw UnsupportedOperationException()
 
-    override fun findLocationNameByDpsId(dpsId: String): String? {
-      throw UnsupportedOperationException()
-    }
+    override fun findLocationNameByDpsId(dpsId: String): String? = throw UnsupportedOperationException()
   }
 }
