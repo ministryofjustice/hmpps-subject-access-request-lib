@@ -1,6 +1,11 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.jknack.handlebars.Context
+import com.github.jknack.handlebars.Handlebars
+import com.github.jknack.handlebars.HandlebarsException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -10,10 +15,15 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplatingException
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
+import java.util.UUID
 import java.util.stream.Stream
+import kotlin.text.Charsets.UTF_8
 
 private const val LOCATION_DPS_ID = "28953d06-d379-450c-9ec4-b5993ce5cd4f"
 private const val LOCATION_NOMIS_ID = 4324567
@@ -21,7 +31,7 @@ private const val LOCATION_NOMIS_ID = 4324567
 class TemplateHelpersTest {
 
   private val templateDataFetcherFacade: TemplateDataFetcherFacade = mock()
-  private val templateHelpers = TemplateHelpers(templateDataFetcherFacade)
+  private val templateHelpers = TemplateHelpers(templateDataFetcherFacade, jacksonObjectMapper())
 
   @Nested
   inner class GetElementNumberTest {
@@ -443,6 +453,152 @@ class TemplateHelpersTest {
     }
   }
 
+  @Nested
+  inner class InlineAttachmentTest {
+    private val handlebars = Handlebars()
+    private val renderRequestInfo = RenderRequestInfo(UUID.randomUUID(), "service-one")
+
+    @BeforeEach
+    fun setUp() {
+      handlebars.registerHelpers(templateHelpers)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpersTest#inlineAttachmentValues")
+    fun `should return expected value`(input: Map<String, Any>?, height: Int?, width: Int?, expectedValue: String?) {
+      whenever(
+        templateDataFetcherFacade.getRenderableAttachment(
+          any(),
+          eq(renderRequestInfo),
+        ),
+      ).thenReturn("filecontent".toByteArray(UTF_8))
+      val context =
+        Context.newBuilder(mapOf("attachment" to input)).combine("render-request-info", renderRequestInfo).build()
+      val template = handlebars.compileInline("{{{inlineAttachment attachment $height $width}}}")
+
+      val result = template.apply(context)
+
+      assertThat(result).isEqualTo(expectedValue)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpersTest#inlineAttachmentInvalidValues")
+    fun `should throw expected exception if input is not correct map`(input: Map<String, Any>) {
+      val context =
+        Context.newBuilder(mapOf("attachment" to input)).combine("render-request-info", renderRequestInfo).build()
+      val template = handlebars.compileInline("{{{inlineAttachment attachment}}}")
+
+      val actual = assertThrows<HandlebarsException> { template.apply(context) }
+
+      assertThat(actual.cause).isInstanceOf(SubjectAccessRequestTemplatingException::class.java)
+        .hasMessageStartingWith("Could not convert object to inline attachment")
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "application/json",
+        "application/pdf",
+        "text/html",
+        "video/mp4",
+      ],
+    )
+    fun `should throw expected exception if inline attachment is not image`(contentType: String) {
+      val context = Context.newBuilder(
+        mapOf(
+          "attachment" to mapOf(
+            "contentType" to contentType,
+            "url" to "http://url",
+            "filesize" to 10,
+          ),
+        ),
+      ).combine("render-request-info", renderRequestInfo).build()
+      val template = handlebars.compileInline("{{{inlineAttachment attachment}}}")
+
+      val actual = assertThrows<HandlebarsException> { template.apply(context) }
+
+      assertThat(actual.cause).isInstanceOf(SubjectAccessRequestTemplatingException::class.java)
+        .hasMessageStartingWith("Inline attachment with content type $contentType not supported")
+    }
+  }
+
+  @Nested
+  inner class InlineAttachmentContentTest {
+    private val handlebars = Handlebars()
+    private val renderRequestInfo = RenderRequestInfo(UUID.randomUUID(), "service-one")
+
+    @BeforeEach
+    fun setUp() {
+      handlebars.registerHelpers(templateHelpers)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpersTest#inlineAttachmentValues")
+    fun `should return expected value`(input: Map<String, Any>?, height: Int?, width: Int?, expectedValue: String?) {
+      whenever(
+        templateDataFetcherFacade.getRenderableAttachment(
+          any(),
+          eq(renderRequestInfo),
+        ),
+      ).thenReturn("filecontent".toByteArray(UTF_8))
+      val context =
+        Context.newBuilder(mapOf("attachment" to input)).combine("render-request-info", renderRequestInfo).build()
+      val template = handlebars.compileInline(
+        """
+        {{#attachment}}
+          <img src="{{{inlineAttachmentContent attachment}}}" alt="Inline attachment" height="$height" width="$width"/>
+        {{/attachment}}
+        {{^attachment}}
+          No Data Held
+        {{/attachment}}""",
+      )
+
+      val result = template.apply(context)
+
+      assertThat(result.trim()).isEqualTo(expectedValue)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpersTest#inlineAttachmentInvalidValues")
+    fun `should throw expected exception if input is not correct map`(input: Map<String, Any>) {
+      val context =
+        Context.newBuilder(mapOf("attachment" to input)).combine("render-request-info", renderRequestInfo).build()
+      val template = handlebars.compileInline("{{inlineAttachmentContent attachment}}")
+
+      val actual = assertThrows<HandlebarsException> { template.apply(context) }
+
+      assertThat(actual.cause).isInstanceOf(SubjectAccessRequestTemplatingException::class.java)
+        .hasMessageStartingWith("Could not convert object to inline attachment")
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "application/json",
+        "application/pdf",
+        "text/html",
+        "video/mp4",
+      ],
+    )
+    fun `should throw expected exception if inline attachment is not image`(contentType: String) {
+      val context = Context.newBuilder(
+        mapOf(
+          "attachment" to mapOf(
+            "contentType" to contentType,
+            "url" to "http://url",
+            "filesize" to 10,
+          ),
+        ),
+      ).combine("render-request-info", renderRequestInfo).build()
+      val template = handlebars.compileInline("{{inlineAttachmentContent attachment}}")
+
+      val actual = assertThrows<HandlebarsException> { template.apply(context) }
+
+      assertThat(actual.cause).isInstanceOf(SubjectAccessRequestTemplatingException::class.java)
+        .hasMessageStartingWith("Inline attachment with content type $contentType not supported")
+    }
+  }
+
   companion object {
     @JvmStatic
     fun dateArrayValues(): Stream<Arguments> = Stream.of(
@@ -481,6 +637,35 @@ class TemplateHelpersTest {
       true,
       false,
       listOf("1", "2", "3"),
+    )
+
+    @JvmStatic
+    fun inlineAttachmentValues(): Stream<Arguments> = Stream.of(
+      Arguments.of(null, null, null, "No Data Held"),
+      Arguments.of(mapOf("contentType" to "image/jpeg", "url" to "http://url", "filesize" to 10), null, null, "<img src=\"data:image/jpeg;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/>"),
+      Arguments.of(mapOf("contentType" to "image/png", "url" to "http://url", "filesize" to 10), null, null, "<img src=\"data:image/png;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/>"),
+      Arguments.of(mapOf("contentType" to "image/bmp", "url" to "http://url", "filesize" to 10), null, null, "<img src=\"data:image/bmp;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/>"),
+      Arguments.of(mapOf("contentType" to "image/tiff", "url" to "http://url", "filesize" to 10), null, null, "<img src=\"data:image/tiff;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/>"),
+      Arguments.of(mapOf("contentType" to "image/gif", "url" to "http://url", "filesize" to 10, "headers" to listOf(mapOf("name" to "header-one", "value" to "val123"))), null, null, "<img src=\"data:image/gif;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/>"),
+      Arguments.of(mapOf("contentType" to "image/jpeg", "url" to "http://url", "filesize" to 10), 50, null, "<img src=\"data:image/jpeg;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"50\" width=\"null\"/>"),
+      Arguments.of(mapOf("contentType" to "image/jpeg", "url" to "http://url", "filesize" to 10), null, 50, "<img src=\"data:image/jpeg;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"null\" width=\"50\"/>"),
+      Arguments.of(mapOf("contentType" to "image/jpeg", "url" to "http://url", "filesize" to 10), 100, 75, "<img src=\"data:image/jpeg;base64,ZmlsZWNvbnRlbnQ=\" alt=\"Inline attachment\" height=\"100\" width=\"75\"/>"),
+    )
+
+    @JvmStatic
+    fun inlineAttachmentContentValues(): Stream<Arguments> = Stream.of(
+      Arguments.of(null, null),
+      Arguments.of(mapOf("contentType" to "image/jpeg", "url" to "http://url", "filesize" to 10), "data:image/jpeg;base64,ZmlsZWNvbnRlbnQ="),
+      Arguments.of(mapOf("contentType" to "image/png", "url" to "http://url", "filesize" to 10), "data:image/png;base64,ZmlsZWNvbnRlbnQ="),
+      Arguments.of(mapOf("contentType" to "image/bmp", "url" to "http://url", "filesize" to 10), "data:image/bmp;base64,ZmlsZWNvbnRlbnQ="),
+      Arguments.of(mapOf("contentType" to "image/tiff", "url" to "http://url", "filesize" to 10), "data:image/tiff;base64,ZmlsZWNvbnRlbnQ="),
+      Arguments.of(mapOf("contentType" to "image/gif", "url" to "http://url", "filesize" to 10, "headers" to listOf(mapOf("name" to "header-one", "value" to "val123"))), "data:image/gif;base64,ZmlsZWNvbnRlbnQ="),
+    )
+
+    @JvmStatic
+    fun inlineAttachmentInvalidValues(): List<Map<String, Any>?> = listOf(
+      mapOf("contentType" to "image/jpeg"),
+      mapOf("url" to "http://url", "filesize" to 10),
     )
   }
 }

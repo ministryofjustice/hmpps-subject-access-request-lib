@@ -33,4 +33,9 @@ class SubjectAccessRequestIntegrationTest :
   override fun getDataSourceInstance(): DataSource = dataSource
 
   override fun getEntityManagerInstance(): EntityManager = entityManager
+
+  override fun getInlineAttachments(): Map<String, String> = mapOf(
+    "http://image.png" to "/sar/image.png",
+    "http://map.jpg" to "/sar/map.jpg",
+  )
 }
