@@ -20,6 +20,11 @@ class TemplateValidatorTest {
   }
 
   @Test
+  fun `should return successfully validate inline attachment template`() {
+    validator.validateSyntax(getTemplate("inline-attachment-template"))
+  }
+
+  @Test
   fun `should throw exception for template with missing closing tag`() {
     val actual = assertThrows<SubjectAccessRequestTemplateValidationException> {
       validator.validateSyntax(getTemplate("missing-tag"))
