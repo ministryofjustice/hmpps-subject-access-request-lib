@@ -42,6 +42,9 @@ interface SarApiDataTest : SarApiTestBase {
 }
 
 interface SarReportTest : SarApiTestBase {
+
+  fun getInlineAttachments(): Map<String, String> = emptyMap()
+
   @Test
   fun `SAR report should render as expected`() {
     setupTestData()
@@ -49,6 +52,9 @@ interface SarReportTest : SarApiTestBase {
     getSarHelper().stubFindUserLastNameWith("Johnson")
     getSarHelper().stubFindLocationNameByNomisIdWith("PROPERTY BOX 1")
     getSarHelper().stubFindLocationNameByDpsIdWith("PROPERTY BOX 2")
+    getInlineAttachments().forEach { attachment ->
+      getSarHelper().stubGetAttachment(attachment.key, getSarHelper().getResourceAsBytes(attachment.value))
+    }
     val dataResponse = getSarHelper().requestSarData(getPrn(), getCrn(), getFromDate(), getToDate(), getWebTestClientInstance())
     val templateResponse = getSarHelper().requestSarTemplate(getWebTestClientInstance())
 

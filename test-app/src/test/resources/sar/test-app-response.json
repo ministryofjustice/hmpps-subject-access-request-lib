@@ -4,13 +4,42 @@
       "testDate": "2026-02-01",
       "testFlag": true,
       "testLabel": "Test 1",
-      "testName": "test-one"
+      "testName": "test-one",
+      "attachment": {
+        "contentType": "image/png",
+        "url": "http://image.png",
+        "filesize": 12345,
+        "headers": [
+          {
+            "name": "Test-Header",
+            "value": "123abc"
+          }
+        ]
+      }
     },
     {
       "testDate": "2026-03-01",
       "testFlag": false,
       "testLabel": "Test 2",
-      "testName": "test-two"
+      "testName": "test-two",
+      "attachment": {
+        "contentType": "image/jpeg",
+        "url": "http://map.jpg",
+        "filesize": 12345,
+        "headers": [
+          {
+            "name": "Test-Header",
+            "value": "456def"
+          }
+        ]
+      }
+    },
+    {
+      "testDate": "2026-04-01",
+      "testFlag": true,
+      "testLabel": "Test 3",
+      "testName": "test-three",
+      "attachment": null
     }
   ]
 }
