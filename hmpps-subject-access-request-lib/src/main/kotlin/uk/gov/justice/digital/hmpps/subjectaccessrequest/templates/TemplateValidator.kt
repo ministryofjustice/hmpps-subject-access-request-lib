@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.jknack.handlebars.Handlebars
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplateValidationException
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 
 class TemplateValidator {
 
@@ -10,6 +12,7 @@ class TemplateValidator {
       .registerHelpers(
         TemplateHelpers(
           templateDataFetcherFacade = NoOpTemplateDataFetcherFacade(),
+          jacksonObjectMapper(),
         ),
       )
   }
@@ -34,5 +37,7 @@ class TemplateValidator {
     override fun findLocationNameByNomisId(nomisId: Int): String? = throw UnsupportedOperationException()
 
     override fun findLocationNameByDpsId(dpsId: String): String? = throw UnsupportedOperationException()
+
+    override fun getRenderableAttachment(attachment: InlineAttachment, renderRequestInfo: RenderRequestInfo): ByteArray = throw UnsupportedOperationException()
   }
 }

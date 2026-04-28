@@ -1,15 +1,21 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.jknack.handlebars.Options
 import org.apache.commons.lang3.StringUtils.isBlank
 import org.apache.commons.lang3.StringUtils.isNotBlank
 import org.apache.commons.lang3.StringUtils.leftPad
 import org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase
+import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplatingException
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.lang.String.format
 import java.time.LocalDateTime
+import java.util.Base64
 
 class TemplateHelpers(
   private val templateDataFetcherFacade: TemplateDataFetcherFacade,
+  private val objectMapper: ObjectMapper,
 ) {
   companion object {
     const val NO_DATA_HELD = "No Data Held"
@@ -124,5 +130,30 @@ class TemplateHelpers(
     if (input == null || input == "") return NO_DATA_HELD
     if (input.contains(" ")) return input
     return splitByCharacterTypeCamelCase(input).joinToString(" ").lowercase()
+  }
+
+  fun inlineAttachmentContent(input: Map<String, Any>?, options: Options): String? {
+    if (input == null) {
+      return null
+    }
+    val inlineAttachment = try {
+      objectMapper.convertValue(input, InlineAttachment::class.java)
+    } catch (e: IllegalArgumentException) {
+      throw SubjectAccessRequestTemplatingException("Could not convert object to inline attachment: ${e.message}")
+    }
+    if (MediaType.parseMediaType(inlineAttachment.contentType).type != "image") {
+      throw SubjectAccessRequestTemplatingException("Inline attachment with content type ${inlineAttachment.contentType} not supported")
+    }
+    val renderRequestInfo = options.context.get("render-request-info") as RenderRequestInfo
+    val attachmentData = templateDataFetcherFacade.getRenderableAttachment(inlineAttachment, renderRequestInfo)
+    val base64 = Base64.getEncoder().encodeToString(attachmentData)
+    return "data:${inlineAttachment.contentType};base64,$base64"
+  }
+
+  fun inlineAttachment(input: Map<String, Any>?, height: Int? = null, width: Int? = null, options: Options): String {
+    if (input == null) {
+      return NO_DATA_HELD
+    }
+    return "<img src=\"${inlineAttachmentContent(input, options)}\" alt=\"Inline attachment\" height=\"$height\" width=\"$width\"/>"
   }
 }

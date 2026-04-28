@@ -9,7 +9,7 @@ kotlin {
 
 allprojects {
   group = "uk.gov.justice.service.hmpps"
-  version = "1.5.0"
+  version = "1.6.0"
 
   repositories {
     mavenLocal()

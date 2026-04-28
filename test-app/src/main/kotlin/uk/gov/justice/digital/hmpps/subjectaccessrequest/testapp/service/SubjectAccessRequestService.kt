@@ -20,12 +20,30 @@ class SubjectAccessRequestService : HmppsPrisonSubjectAccessRequestService {
           testLabel = "Test 1",
           testDate = LocalDate.parse("2026-02-01"),
           testFlag = true,
+          attachment = InlineAttachment(
+            contentType = "image/png",
+            url = "http://image.png",
+            filesize = 12345,
+            headers = listOf(InlineAttachmentHeader(name = "Test-Header", value = "123abc")),
+          ),
         ),
         TestItem(
           testName = "test-two",
           testLabel = "Test 2",
           testDate = LocalDate.parse("2026-03-01"),
           testFlag = false,
+          attachment = InlineAttachment(
+            contentType = "image/jpeg",
+            url = "http://map.jpg",
+            filesize = 12345,
+            headers = listOf(InlineAttachmentHeader(name = "Test-Header", value = "456def")),
+          ),
+        ),
+        TestItem(
+          testName = "test-three",
+          testLabel = "Test 3",
+          testDate = LocalDate.parse("2026-04-01"),
+          testFlag = true,
         ),
       ),
     ),
@@ -51,4 +69,17 @@ data class TestItem(
   val testLabel: String,
   val testDate: LocalDate,
   val testFlag: Boolean,
+  val attachment: InlineAttachment? = null,
+)
+
+data class InlineAttachment(
+  val contentType: String,
+  val url: String,
+  val filesize: Int,
+  val headers: List<InlineAttachmentHeader>? = null,
+)
+
+data class InlineAttachmentHeader(
+  val name: String,
+  val value: String,
 )
