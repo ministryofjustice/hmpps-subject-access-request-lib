@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.helger.css.reader.CSSReader
 import com.helger.css.writer.CSSWriter
 import com.helger.css.writer.CSSWriterSettings
@@ -17,11 +18,13 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.RenderParameters
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateDataFetcherFacade
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpers
@@ -32,9 +35,10 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.Optional
+import java.util.UUID
 import javax.sql.DataSource
 
-class SarIntegrationTestHelper(
+open class SarIntegrationTestHelper(
   val jwtAuthHelper: JwtAuthorisationHelper,
   val expectedApiResponsePath: String,
   val expectedRenderResultPath: String,
@@ -44,7 +48,7 @@ class SarIntegrationTestHelper(
   val objectMapper: ObjectMapper = JsonMapper.builder().configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
     .build(),
   val templateDataFetcherFacade: TemplateDataFetcherFacade = mock(),
-  val templateHelpers: TemplateHelpers = TemplateHelpers(templateDataFetcherFacade),
+  val templateHelpers: TemplateHelpers = TemplateHelpers(templateDataFetcherFacade, jacksonObjectMapper()),
   val templateRenderService: TemplateRenderService = TemplateRenderService(templateHelpers),
 ) {
 
@@ -114,6 +118,8 @@ class SarIntegrationTestHelper(
 
   fun getResourceAsString(path: String): String = this::class.java.getResource(path)?.readText()!!
 
+  fun getResourceAsBytes(path: String): ByteArray = this::class.java.getResource(path)?.readBytes()!!
+
   fun saveContentToFile(content: String, name: String) {
     val resourcesDir = Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toFile()
     val file = File(resourcesDir, name)
@@ -133,6 +139,7 @@ class SarIntegrationTestHelper(
       template = template,
       data = data,
     ),
+    RenderRequestInfo(UUID.randomUUID(), "test-service"),
   ).toString(StandardCharsets.UTF_8)
 
   fun getGeneratedEntitySchema(entityManager: EntityManager): String {
@@ -210,6 +217,12 @@ class SarIntegrationTestHelper(
 
   fun stubFindLocationNameByDpsIdWith(locationName: String) {
     whenever(templateDataFetcherFacade.findLocationNameByDpsId(any())).thenReturn(locationName)
+  }
+
+  fun stubGetAttachment(url: String, attachmentData: ByteArray) {
+    whenever(templateDataFetcherFacade.getRenderableAttachment(argThat { this.url == url }, any())).thenReturn(
+      attachmentData,
+    )
   }
 
   fun saveSarApiResponse(response: SubjectAccessRequestResponse) {

@@ -199,6 +199,24 @@ generate the report to a specified range. The additional setup required for this
 actual generated one in the test (to generate the actual rendered HTML ensure the file defined by this property exists
 and run the test with `SAR_GENERATE_ACTUAL=true` see [here](#generating-the-actual-content-files)).
 
+If inline image attachments are present in the template (via the use of the `inlineAttachment` or
+`inlineAttachmentContent` template helper functions), then the images for those can be provided by overriding the
+`getInlineAttachments` method. The implementation should return a map matching the download `url` in the data response
+to the resource file path. For example, if the data contains the following:
+
+    "attachment": {
+        "contentType": "image/gif",
+        "url": "http://image-one"
+        "filesize": 100
+    }
+
+and the image is located in `src/test/resources/sar/image.gif`, then the `getInlineAttachments` method should be
+implemented as below:
+
+    override fun getInlineAttachments(): Map<String, String> = mapOf(
+        "http://image-one" to "/sar/image.gif",
+    )
+
 #### Using the helper directly
 
 The `SarIntegrationTestHelper` instance can be used directly to create your own bespoke tests in your test class without

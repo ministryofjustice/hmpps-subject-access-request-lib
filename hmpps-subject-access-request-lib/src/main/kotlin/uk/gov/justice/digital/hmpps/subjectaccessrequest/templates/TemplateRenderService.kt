@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
+import com.github.jknack.handlebars.Context
 import com.github.jknack.handlebars.Handlebars
 import com.github.mustachejava.DefaultMustacheFactory
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.io.BufferedWriter
 import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
@@ -14,11 +16,17 @@ class TemplateRenderService(
   private val templateHelpers: TemplateHelpers,
 ) {
 
-  fun renderServiceTemplate(params: RenderParameters): ByteArrayOutputStream {
+  fun renderServiceTemplate(params: RenderParameters, renderRequestInfo: RenderRequestInfo): ByteArrayOutputStream {
     val handlebars = Handlebars()
     handlebars.registerHelpers(templateHelpers)
     val compiledServiceTemplate = handlebars.compileInline(params.template)
-    val renderedServiceReport = compiledServiceTemplate.apply(params.data)
+
+    val context = Context
+      .newBuilder(params.data)
+      .combine("render-request-info", renderRequestInfo)
+      .build()
+
+    val renderedServiceReport = compiledServiceTemplate.apply(context)
     return renderStyleTemplate(renderedServiceReport)
   }
 

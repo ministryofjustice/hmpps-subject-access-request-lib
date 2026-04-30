@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
@@ -16,7 +17,10 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.io.ByteArrayOutputStream
+import java.util.UUID
+import kotlin.text.Charsets.UTF_8
 
 class TemplateRenderServiceTest {
 
@@ -25,8 +29,16 @@ class TemplateRenderServiceTest {
   private val renderService = TemplateRenderService(
     TemplateHelpers(
       templateDataFetcherFacade = templateDataFetcher,
+      jacksonObjectMapper(),
     ),
   )
+
+  private val inlineAttachment = InlineAttachment(
+    contentType = "image/jpeg",
+    "http://file-url",
+    100,
+  )
+  private val renderRequestInfo = RenderRequestInfo(UUID.randomUUID(), "service-one")
 
   @Nested
   inner class RenderReportHtmlFromTemplateAndData {
@@ -45,13 +57,16 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findLocationNameByNomisId(789))
         .thenReturn("Infirmary")
 
+      whenever(templateDataFetcher.getRenderableAttachment(inlineAttachment, renderRequestInfo))
+        .thenReturn("imagecontent".toByteArray(UTF_8))
+
       val renderParams = RenderParameters(
         templateVersion = "1.0",
         template = getResource("/templates/test-service-template.mustache"),
         data = testServiceData,
       )
 
-      val actual = renderService.renderServiceTemplate(renderParams)
+      val actual = renderService.renderServiceTemplate(renderParams, renderRequestInfo)
       assertThat(actual).isNotNull
 
       val generatedHtml = actual.toStringValue()
@@ -71,11 +86,13 @@ class TemplateRenderServiceTest {
       assertThat(generatedHtml).containsOnlyOnce("<li>Array data 1 - arrayValue1-1</li>")
       assertThat(generatedHtml).containsOnlyOnce("<li>Array data 2 - arrayValue1-2</li>")
       assertThat(generatedHtml).containsOnlyOnce("<tr><td>Formatted Date field: </td><td>26 July 2023, 12:59:57 pm</td></tr>")
+      assertThat(generatedHtml).containsOnlyOnce("<div id=\"attachment\"><img src=\"data:image/jpeg;base64,aW1hZ2Vjb250ZW50\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/></div>")
 
       verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
       verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
       verify(templateDataFetcher, times(1)).findLocationNameByDpsId("1234")
       verify(templateDataFetcher, times(1)).findLocationNameByNomisId(789)
+      verify(templateDataFetcher, times(1)).getRenderableAttachment(inlineAttachment, renderRequestInfo)
     }
   }
 
@@ -219,6 +236,37 @@ class TemplateRenderServiceTest {
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Nomis Location: </td><td>1234</td></tr>")
       verify(templateDataFetcher, times(1)).findLocationNameByNomisId(1234)
+    }
+  }
+
+  @Nested
+  inner class GetRenderableAttachment {
+
+    @Test
+    fun `should render image for valid attachment`() {
+      whenever(templateDataFetcher.getRenderableAttachment(inlineAttachment, renderRequestInfo))
+        .thenReturn("imagecontent".toByteArray(UTF_8))
+
+      val actual = renderReportHtml(
+        TestServiceData(
+          attachment = mapOf(
+            "contentType" to "image/jpeg",
+            "url" to "http://file-url",
+            "filesize" to 100,
+          ),
+        ),
+      )
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<div id=\"attachment\"><img src=\"data:image/jpeg;base64,aW1hZ2Vjb250ZW50\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/></div>")
+      verify(templateDataFetcher, times(1)).getRenderableAttachment(inlineAttachment, renderRequestInfo)
+    }
+
+    @Test
+    fun `should render no data held if attachment is null`() {
+      val actual = renderReportHtml(TestServiceData(attachment = null))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<div id=\"attachment\">No Data Held</div>")
+      verify(templateDataFetcher, never()).getRenderableAttachment(any(), any())
     }
   }
 
@@ -469,6 +517,7 @@ class TemplateRenderServiceTest {
       template = getResource("/templates/test-service-template.mustache"),
       data = listOf(data),
     ),
+    renderRequestInfo,
   )
 
   private fun assertContainsExpectedValueOnce(actual: ByteArrayOutputStream, expectValue: String) {
@@ -492,6 +541,7 @@ class TemplateRenderServiceTest {
     val moreData: Map<String, Any> = emptyMap(),
     val arrayData: MutableList<String> = mutableListOf(),
     val dateField: String? = null,
+    val attachment: Map<String, Any>? = null,
   )
 
   private val testServiceData: List<TestServiceData> = listOf(
@@ -509,6 +559,11 @@ class TemplateRenderServiceTest {
       ),
       arrayData = mutableListOf("arrayValue1-1", "arrayValue1-2"),
       dateField = "2023-07-26T12:59:57.961+01:00",
+      attachment = mapOf(
+        "contentType" to "image/jpeg",
+        "url" to "http://file-url",
+        "filesize" to 100,
+      ),
     ),
   )
 
