@@ -82,8 +82,8 @@ the APIs of your service, assuming this is made available through your existing 
 There are a number of interfaces that exists which contain the tests that can be added to your test class. The idea of
 interfaces is that there is no mandation to implement all the tests giving some flexibility in deciding which tests you
 think would be required to catch changes in your service. However, it is recommended that at least the report generation
-test provided by `SarReportTest` is implemented to verify the generation of the report HTML and to have this to provide
-to the Offender SAR team for reviewing of changes to the report.
+test provided by `SarReportTest` is implemented to verify the generation of the report HTML and which generates a pdf
+version which can provided to the Offender SAR team for reviews when there are any changes.
 
 #### Generating the actual content files
 
@@ -105,6 +105,9 @@ This will generate a file for each of the data schema, API, and report generatio
 | Report      | sar-generated-report.html.log |
 
 (The files have the extension .log to ensure they are ignored by git and don't get committed)
+
+> **_NOTE:_**  The Report test will always generate a pdf report in `build/test-generated` when run regardless of the
+> use of the above flag
 
 #### Data schema tests
  
@@ -216,6 +219,10 @@ implemented as below:
     override fun getInlineAttachments(): Map<String, String> = mapOf(
         "http://image-one" to "/sar/image.gif",
     )
+
+Everytime this test is run it will generate pdf of the report as it would appear in the final SAR report, located at
+`build/test-generated/sar-generated-report.pdf`. This report can be provided to the Offender SAR team to be used for
+reviews of changes made to the report. 
 
 #### Using the helper directly
 
