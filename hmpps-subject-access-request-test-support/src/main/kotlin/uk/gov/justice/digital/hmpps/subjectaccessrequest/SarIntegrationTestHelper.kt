@@ -14,7 +14,7 @@ import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
+import org.jsoup.nodes.Document.OutputSettings
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.mockito.kotlin.any
@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateRende
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.Optional
@@ -50,6 +51,7 @@ open class SarIntegrationTestHelper(
   val templateDataFetcherFacade: TemplateDataFetcherFacade = mock(),
   val templateHelpers: TemplateHelpers = TemplateHelpers(templateDataFetcherFacade, jacksonObjectMapper()),
   val templateRenderService: TemplateRenderService = TemplateRenderService(templateHelpers),
+  val pdfRenderer: PdfRenderer = PdfRenderer(),
 ) {
 
   companion object {
@@ -120,13 +122,28 @@ open class SarIntegrationTestHelper(
 
   fun getResourceAsBytes(path: String): ByteArray = this::class.java.getResource(path)?.readBytes()!!
 
-  fun saveContentToFile(content: String, name: String) {
-    val resourcesDir = Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toFile()
-    val file = File(resourcesDir, name)
+  fun saveContentToFile(content: String, name: String, path: String = "src/test/resources") {
+    fileToGenerate(name, path).writeText(content)
+  }
+
+  fun saveContentToFile(content: ByteArray, name: String, path: String = "src/test/resources") {
+    fileToGenerate(name, path).writeBytes(content)
+  }
+
+  private fun fileToGenerate(name: String, path: String): File {
+    val generatedDir = Paths.get(System.getProperty("user.dir"), path)
+    Files.createDirectories(generatedDir)
+    val file = File(generatedDir.toFile(), name)
     if (!file.exists()) {
       file.createNewFile()
     }
-    file.writeText(content)
+    return file
+  }
+
+  fun renderAndSaveReportAsPdf(html: String, prn: String?, crn: String?) {
+    val renderedPdf = pdfRenderer.renderSubjectAccessRequestPdf(html, prn, crn)
+    saveContentToFile(renderedPdf.toByteArray(), "sar-generated-report.pdf", "build/test-generated")
+    log.info("SAVED SAR GENERATED REPORT PDF TO: build/test-generated/sar-generated-report.pdf")
   }
 
   fun renderServiceReport(
@@ -161,10 +178,10 @@ open class SarIntegrationTestHelper(
   }
 
   fun normalizeHtml(html: String): String {
-    val doc: Document = Jsoup.parse(html)
+    val doc = Jsoup.parse(html)
     doc.outputSettings()
       .prettyPrint(true)
-      .syntax(Document.OutputSettings.Syntax.html)
+      .syntax(OutputSettings.Syntax.html)
       .escapeMode(org.jsoup.nodes.Entities.EscapeMode.base)
       .charset("UTF-8")
 

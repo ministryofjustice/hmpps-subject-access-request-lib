@@ -63,6 +63,9 @@ interface SarReportTest : SarApiTestBase {
       templateVersion = "1.0",
       template = templateResponse,
     )
+
+    getSarHelper().renderAndSaveReportAsPdf(renderResult, getPrn(), getCrn())
+
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveGeneratedReport(renderResult)
     } else {
