@@ -15,7 +15,7 @@ configurations {
 
 dependencies {
   api("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
-  api("com.github.jknack:handlebars:4.5.0")
+  api("com.github.jknack:handlebars:4.5.1")
   api("com.github.spullara.mustache.java:compiler:0.9.14")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
