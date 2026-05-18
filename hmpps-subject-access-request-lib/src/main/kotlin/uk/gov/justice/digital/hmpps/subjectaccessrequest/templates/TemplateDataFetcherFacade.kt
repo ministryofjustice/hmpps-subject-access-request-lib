@@ -14,7 +14,7 @@ interface TemplateDataFetcherFacade {
 data class InlineAttachment(
   val contentType: String,
   val url: String,
-  val filesize: Int,
+  val filesize: Int? = null,
   val headers: List<InlineAttachmentHeader>? = null,
 )
 
