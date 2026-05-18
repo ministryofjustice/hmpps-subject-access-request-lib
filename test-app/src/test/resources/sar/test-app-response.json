@@ -25,7 +25,7 @@
       "attachment": {
         "contentType": "image/jpeg",
         "url": "http://map.jpg",
-        "filesize": 12345,
+        "filesize": null,
         "headers": [
           {
             "name": "Test-Header",

@@ -35,7 +35,6 @@ class SubjectAccessRequestService : HmppsPrisonSubjectAccessRequestService {
           attachment = InlineAttachment(
             contentType = "image/jpeg",
             url = "http://map.jpg",
-            filesize = 12345,
             headers = listOf(InlineAttachmentHeader(name = "Test-Header", value = "456def")),
           ),
         ),
@@ -75,7 +74,7 @@ data class TestItem(
 data class InlineAttachment(
   val contentType: String,
   val url: String,
-  val filesize: Int,
+  val filesize: Int? = null,
   val headers: List<InlineAttachmentHeader>? = null,
 )
 

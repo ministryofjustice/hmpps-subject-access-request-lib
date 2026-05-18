@@ -211,7 +211,6 @@ to the resource file path. For example, if the data contains the following:
     "attachment": {
         "contentType": "image/gif",
         "url": "http://image-one"
-        "filesize": 100
     }
 
 and the image is located in `src/test/resources/sar/image.gif`, then the `getInlineAttachments` method should be
