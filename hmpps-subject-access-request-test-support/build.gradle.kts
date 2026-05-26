@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.2.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.3.1"
   kotlin("plugin.spring") version "2.3.21"
   kotlin("jvm") version "2.3.10"
   id("maven-publish")
@@ -15,14 +15,14 @@ configurations {
 
 dependencies {
   implementation(project(":hmpps-subject-access-request-lib"))
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.2.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
   implementation("org.springframework.boot:spring-boot-webtestclient")
   implementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
   implementation("net.javacrumbs.json-unit:json-unit-assertj:5.1.1")
   implementation("org.flywaydb:flyway-core")
   implementation("jakarta.persistence:jakarta.persistence-api")
   implementation("org.jsoup:jsoup:1.22.2")
-  implementation("com.helger:ph-css:8.2.0")
+  implementation("com.helger:ph-css:8.2.1")
   implementation("com.itextpdf:itext7-core:9.6.0")
   implementation("com.itextpdf:html2pdf:6.3.2")
 }
