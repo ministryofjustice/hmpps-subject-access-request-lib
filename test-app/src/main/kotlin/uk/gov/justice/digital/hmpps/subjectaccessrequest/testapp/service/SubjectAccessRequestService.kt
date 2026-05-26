@@ -13,7 +13,7 @@ class SubjectAccessRequestService : HmppsPrisonSubjectAccessRequestService {
     fromDate: LocalDate?,
     toDate: LocalDate?,
   ): HmppsSubjectAccessRequestContent = HmppsSubjectAccessRequestContent(
-    content = SubjectAccessRequestResponse(
+    content = SubjectAccessRequestContent(
       testItems = listOf(
         TestItem(
           testName = "test-one",
@@ -59,7 +59,7 @@ class SubjectAccessRequestService : HmppsPrisonSubjectAccessRequestService {
   )
 }
 
-data class SubjectAccessRequestResponse(
+data class SubjectAccessRequestContent(
   val testItems: List<TestItem>,
 )
 

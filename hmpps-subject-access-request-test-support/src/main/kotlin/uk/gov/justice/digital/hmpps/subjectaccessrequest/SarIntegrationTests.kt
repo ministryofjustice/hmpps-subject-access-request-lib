@@ -21,6 +21,7 @@ interface SarApiTestBase : SarTestBase {
   fun getFromDate(): LocalDate? = null
   fun getToDate(): LocalDate? = null
   fun getWebTestClientInstance(): WebTestClient
+  fun getContentType(): Class<*> = Any::class.java
 }
 
 interface SarApiDataTest : SarApiTestBase {
@@ -29,7 +30,7 @@ interface SarApiDataTest : SarApiTestBase {
   fun `SAR API should return expected data`() {
     setupTestData()
 
-    val response = getSarHelper().requestSarData(getPrn(), getCrn(), getFromDate(), getToDate(), getWebTestClientInstance())
+    val response = getSarHelper().requestSarData(getPrn(), getCrn(), getFromDate(), getToDate(), getWebTestClientInstance(), getContentType())
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveSarApiResponse(response)
     } else {
@@ -55,7 +56,14 @@ interface SarReportTest : SarApiTestBase {
     getInlineAttachments().forEach { attachment ->
       getSarHelper().stubGetAttachment(attachment.key, getSarHelper().getResourceAsBytes(attachment.value))
     }
-    val dataResponse = getSarHelper().requestSarData(getPrn(), getCrn(), getFromDate(), getToDate(), getWebTestClientInstance())
+    val dataResponse = getSarHelper().requestSarData(
+      getPrn(),
+      getCrn(),
+      getFromDate(),
+      getToDate(),
+      getWebTestClientInstance(),
+      getContentType(),
+    )
     val templateResponse = getSarHelper().requestSarTemplate(getWebTestClientInstance())
 
     val renderResult = getSarHelper().renderServiceReport(
