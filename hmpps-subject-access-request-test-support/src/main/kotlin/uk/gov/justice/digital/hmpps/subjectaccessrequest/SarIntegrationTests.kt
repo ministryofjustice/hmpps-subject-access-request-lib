@@ -79,7 +79,8 @@ interface SarApiTestBase : SarTestBase {
  * Run with the env var `SAR_GENERATE_ACTUAL` with a value of `true` to generate the initial expected json response
  * under `src/test/resources/sar-api-response.json.log`.
  * 
- * See <a href="../../../../../../../../../README.md#api-test">README</a> for more details.
+ * See <a href="https://github.com/ministryofjustice/hmpps-subject-access-request-lib#api-test">README</a> for more
+ * details.
  */
 interface SarApiDataTest : SarApiTestBase {
 
@@ -108,7 +109,8 @@ interface SarApiDataTest : SarApiTestBase {
  * Run with the env var `SAR_GENERATE_ACTUAL` with a value of `true` to generate the initial expected report under
  * `src/test/resources/sar-generated-report.html.log`
  * 
- * See <a href="../../../../../../../../../README.md#report-generation-test">README</a> for more details.
+ * See <a href="https://github.com/ministryofjustice/hmpps-subject-access-request-lib#report-generation-test">README</a>
+ * for more details.
  */
 interface SarReportTest : SarApiTestBase {
 
@@ -161,7 +163,8 @@ interface SarReportTest : SarApiTestBase {
  * Implement this interface to add a test that verifies there are no Flyway changes by comparing the Flyway schema
  * version number to the expected version specified via the property `hmpps.sar.tests.expected-flyway-schema-version`.
  *
- * See <a href="../../../../../../../../../README.md#data-schema-tests">README</a> for more details. 
+ * See <a href="https://github.com/ministryofjustice/hmpps-subject-access-request-lib#data-schema-tests">README</a> for
+ * more details. 
  */
 interface SarFlywaySchemaTest : SarTestBase {
 
@@ -187,7 +190,8 @@ interface SarFlywaySchemaTest : SarTestBase {
  * generating a schema of JPA Entities and comparing to an expected schema specified via the property
  * `hmpps.sar.tests.expected-jpa-entity-schema.path`.
  *
- * See <a href="../../../../../../../../../README.md#data-schema-tests">README</a> for more details.
+ * See <a href="https://github.com/ministryofjustice/hmpps-subject-access-request-lib#data-schema-tests">README</a> for
+ * more details.
  */
 interface SarJpaEntitiesTest : SarTestBase {
 
