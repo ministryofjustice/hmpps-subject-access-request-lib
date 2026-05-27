@@ -10,20 +10,77 @@ import javax.sql.DataSource
 
 interface SarTestBase {
 
+  /**
+   *  Returns the [SarIntegrationTestHelper] instance to be used in the test implementations.
+   *  
+   *  @return a [SarIntegrationTestHelper] instance
+   */
   fun getSarHelper(): SarIntegrationTestHelper
 }
 
 interface SarApiTestBase : SarTestBase {
 
+  /**
+   * The implementation of this should do any data setup required for the test.  
+   */
   fun setupTestData()
+
+  /**
+   * Override this to specify a PRN to be used to fetch the SAR data via the API call.
+   * 
+   * @return the PRN to use when fetching data
+   */
   fun getPrn(): String? = null
+
+  /**
+   * Override this to specify a CRN to be used to fetch the SAR data via the API call.
+   * If the [getPrn] method is also overridden then this will be ignored
+   *
+   * @return the CRN to use when fetching data
+   */
   fun getCrn(): String? = null
+
+  /**
+   * Override this to specify a start date to be used to fetch the SAR data via the API call.
+   *
+   * @return the start date to use when fetching data
+   */
   fun getFromDate(): LocalDate? = null
+
+  /**
+   * Override this to specify an end date to be used to fetch the SAR data via the API call.
+   * 
+   * @return the end date to use when fetching data
+   */
   fun getToDate(): LocalDate? = null
+
+  /**
+   * Returns the [WebTestClient] instance to be used in the test implementations.
+   * 
+   * @return a [WebTestClient] instance
+   */
   fun getWebTestClientInstance(): WebTestClient
+
+  /**
+   * Override this to define explicit type of the content section of the SAR Data API response.
+   * 
+   * @return the type of the content section, default is [Any]
+   */
   fun getContentType(): Class<*> = Any::class.java
 }
 
+/**
+ * Implement this interface to add a test that verifies there are no changes to the SAR data API by calling it to
+ * retrieve the JSON data, and then comparing to an expected JSON response specified via the property 
+ * `hmpps.sar.tests.expected-api-response.path`.
+ * 
+ * The property `hmpps.sar.tests.attachments-expected` should be set to `true` if non-inline attachments exist.
+ * 
+ * Run with the env var `SAR_GENERATE_ACTUAL` with a value of `true` to generate the initial expected json response
+ * under `src/test/resources/sar-api-response.json.log`.
+ * 
+ * See <a href="../../../../../../../../../README.md#api-test">README</a> for more details.
+ */
 interface SarApiDataTest : SarApiTestBase {
 
   @Test
@@ -42,8 +99,26 @@ interface SarApiDataTest : SarApiTestBase {
   }
 }
 
+/**
+ * Implement this interface to add a test that verifies there are no changes to the SAR report by calling the SAR data
+ * API to retrieve the JSON data, using that to then generate a HTML report via the mustache template, and then
+ * comparing to an expected version of the report specified via the property
+ * `hmpps.sar.tests.expected-render-result.path`.
+ * 
+ * Run with the env var `SAR_GENERATE_ACTUAL` with a value of `true` to generate the initial expected report under
+ * `src/test/resources/sar-generated-report.html.log`
+ * 
+ * See <a href="../../../../../../../../../README.md#report-generation-test">README</a> for more details.
+ */
 interface SarReportTest : SarApiTestBase {
 
+  /**
+   * Override this to specify inline attachment files that will be rendered in the report.
+   * The implementation should return a map matching the download `url` in the data response
+   * to the resource file path.
+   *
+   * @return a [Map] of the inline attachment url to file path
+   */
   fun getInlineAttachments(): Map<String, String> = emptyMap()
 
   @Test
@@ -82,8 +157,20 @@ interface SarReportTest : SarApiTestBase {
   }
 }
 
+/**
+ * Implement this interface to add a test that verifies there are no Flyway changes by comparing the Flyway schema
+ * version number to the expected version specified via the property `hmpps.sar.tests.expected-flyway-schema-version`.
+ *
+ * See <a href="../../../../../../../../../README.md#data-schema-tests">README</a> for more details. 
+ */
 interface SarFlywaySchemaTest : SarTestBase {
 
+  /**
+   * Returns the [DataSource] instance to be used in the [SarFlywaySchemaTest] test implementation for determining the
+   * Flyway schema version.
+   *
+   * @return a [DataSource] instance
+   */
   fun getDataSourceInstance(): DataSource
 
   @Test
@@ -95,8 +182,21 @@ interface SarFlywaySchemaTest : SarTestBase {
   }
 }
 
+/**
+ * Implement this interface to add a test that verifies there are no changes to the JPA Entities in a service by
+ * generating a schema of JPA Entities and comparing to an expected schema specified via the property
+ * `hmpps.sar.tests.expected-jpa-entity-schema.path`.
+ *
+ * See <a href="../../../../../../../../../README.md#data-schema-tests">README</a> for more details.
+ */
 interface SarJpaEntitiesTest : SarTestBase {
 
+  /**
+   * Returns the [EntityManager] instance to be used in the [SarJpaEntitiesTest] test implementation for generating the
+   * entity schema.
+   *
+   * @return a [EntityManager] instance
+   */
   fun getEntityManagerInstance(): EntityManager
 
   @Test
