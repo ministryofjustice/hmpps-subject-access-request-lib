@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccess
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.lang.String.format
 import java.time.LocalDateTime
+import java.time.temporal.Temporal
 import java.util.Base64
 
 class TemplateHelpers(
@@ -26,6 +27,7 @@ class TemplateHelpers(
     if (input == null) return ""
     return when (input) {
       is String -> dateConversionHelper.convertDates(input)
+      is Temporal -> dateConversionHelper.convertDates(input.toString())
       is List<*> -> dateConversionHelper.convertDates(
         LocalDateTime.of(
           input.getOrDefault(0, 1),

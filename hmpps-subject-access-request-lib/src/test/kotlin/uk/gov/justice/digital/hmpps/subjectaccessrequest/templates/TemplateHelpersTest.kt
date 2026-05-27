@@ -21,6 +21,11 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccessRequestTemplatingException
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZonedDateTime
+import java.time.temporal.Temporal
 import java.util.UUID
 import java.util.stream.Stream
 import kotlin.text.Charsets.UTF_8
@@ -100,6 +105,13 @@ class TemplateHelpersTest {
       ],
     )
     fun `formatDate returns formatted date for valid string input`(input: String, expected: String) {
+      val response = templateHelpers.formatDate(input)
+      assertThat(response).isEqualTo(expected)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpersTest#dateTemporalValues")
+    fun `formatDate returns formatted date for valid Temporal input`(input: Temporal, expected: String) {
       val response = templateHelpers.formatDate(input)
       assertThat(response).isEqualTo(expected)
     }
@@ -624,6 +636,14 @@ class TemplateHelpersTest {
       Arguments.of(listOf("2023", "3", "24"), "24 March 2023, 12:00 am"),
       Arguments.of(listOf("2023", "3"), "01 March 2023, 12:00 am"),
       Arguments.of(listOf("2023"), "01 January 2023, 12:00 am"),
+    )
+
+    @JvmStatic
+    fun dateTemporalValues(): Stream<Arguments> = Stream.of(
+      Arguments.of(LocalDate.parse("2023-03-24"), "24 March 2023"),
+      Arguments.of(LocalDateTime.parse("2023-03-24T13:59:16"), "24 March 2023, 1:59:16 pm"),
+      Arguments.of(ZonedDateTime.parse("2023-03-24T13:59:16Z"), "24 March 2023, 1:59:16 pm"),
+      Arguments.of(OffsetDateTime.parse("2023-03-24T13:59:16+02:00"), "24 March 2023, 11:59:16 am"),
     )
 
     @JvmStatic
