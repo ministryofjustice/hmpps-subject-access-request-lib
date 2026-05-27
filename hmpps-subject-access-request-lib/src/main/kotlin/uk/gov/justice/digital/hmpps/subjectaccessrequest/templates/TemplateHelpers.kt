@@ -132,7 +132,7 @@ class TemplateHelpers(
     return splitByCharacterTypeCamelCase(input).joinToString(" ").lowercase()
   }
 
-  fun inlineAttachmentContent(input: Map<String, Any>?, options: Options): String? {
+  fun inlineAttachmentContent(input: Any?, options: Options): String? {
     if (input == null) {
       return null
     }
@@ -150,7 +150,7 @@ class TemplateHelpers(
     return "data:${inlineAttachment.contentType};base64,$base64"
   }
 
-  fun inlineAttachment(input: Map<String, Any>?, height: Int? = null, width: Int? = null, options: Options): String {
+  fun inlineAttachment(input: Any?, height: Int? = null, width: Int? = null, options: Options): String {
     if (input == null) {
       return NO_DATA_HELD
     }
