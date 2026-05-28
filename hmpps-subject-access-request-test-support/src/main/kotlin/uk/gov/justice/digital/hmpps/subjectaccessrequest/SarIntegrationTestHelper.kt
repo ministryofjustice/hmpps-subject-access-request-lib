@@ -3,9 +3,7 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
-import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.helger.css.reader.CSSReader
 import com.helger.css.writer.CSSWriter
@@ -46,8 +44,7 @@ open class SarIntegrationTestHelper(
   val attachmentsExpected: Boolean,
   val expectedFlywaySchemaVersion: String,
   val expectedJpaEntitySchemaPath: String,
-  val objectMapper: ObjectMapper = JsonMapper.builder().configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
-    .build(),
+  val objectMapper: ObjectMapper,
   val templateDataFetcherFacade: TemplateDataFetcherFacade = mock(),
   val templateHelpers: TemplateHelpers = TemplateHelpers(templateDataFetcherFacade, jacksonObjectMapper()),
   val templateRenderService: TemplateRenderService = TemplateRenderService(templateHelpers),
@@ -58,15 +55,42 @@ open class SarIntegrationTestHelper(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun requestSarDataForPrn(prn: String, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(prn, null, null, null, webTestClient)
+  fun <T> requestSarDataForPrn(
+    prn: String,
+    webTestClient: WebTestClient,
+    contentType: Class<T>,
+  ): SubjectAccessRequestResponse<T> = requestSarData(prn, null, null, null, webTestClient, contentType)
 
-  fun requestSarDataForPrn(prn: String, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(prn, null, fromDate, toDate, webTestClient)
+  fun <T> requestSarDataForPrn(
+    prn: String,
+    fromDate: LocalDate?,
+    toDate: LocalDate?,
+    webTestClient: WebTestClient,
+    contentType: Class<T>,
+  ): SubjectAccessRequestResponse<T> = requestSarData(prn, null, fromDate, toDate, webTestClient, contentType)
 
-  fun requestSarDataForCrn(crn: String, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(null, crn, null, null, webTestClient)
+  fun <T> requestSarDataForCrn(
+    crn: String,
+    webTestClient: WebTestClient,
+    contentType: Class<T>,
+  ): SubjectAccessRequestResponse<T> = requestSarData(null, crn, null, null, webTestClient, contentType)
 
-  fun requestSarDataForCrn(crn: String, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient): SubjectAccessRequestResponse = requestSarData(null, crn, fromDate, toDate, webTestClient)
+  fun <T> requestSarDataForCrn(
+    crn: String,
+    fromDate: LocalDate?,
+    toDate: LocalDate?,
+    webTestClient: WebTestClient,
+    contentType: Class<T>,
+  ): SubjectAccessRequestResponse<T> = requestSarData(null, crn, fromDate, toDate, webTestClient, contentType)
 
-  fun requestSarData(prn: String?, crn: String?, fromDate: LocalDate?, toDate: LocalDate?, webTestClient: WebTestClient): SubjectAccessRequestResponse {
+  fun <T> requestSarData(
+    prn: String?,
+    crn: String?,
+    fromDate: LocalDate?,
+    toDate: LocalDate?,
+    webTestClient: WebTestClient,
+    contentType: Class<T>,
+  ): SubjectAccessRequestResponse<T> {
     val response = webTestClient.get().uri {
       it.path("/subject-access-request")
         .queryParamIfPresent("prn", Optional.ofNullable(prn))
@@ -80,10 +104,14 @@ open class SarIntegrationTestHelper(
       .expectStatus().isOk
       .expectBody(String::class.java)
       .returnResult().responseBody!!
-    return objectMapper.readValue(response, SubjectAccessRequestResponse::class.java)
+
+    return objectMapper.readValue(
+      response,
+      objectMapper.typeFactory.constructParametricType(SubjectAccessRequestResponse::class.java, contentType),
+    )
   }
 
-  internal fun setAuthorisation(
+  fun setAuthorisation(
     username: String? = "TEST_USR",
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
@@ -167,7 +195,7 @@ open class SarIntegrationTestHelper(
     return objectMapper.writeValueAsString(currentSchema)
   }
 
-  fun toJson(response: SubjectAccessRequestResponse): String = objectMapper.writeValueAsString(response.content)
+  fun <T> toJson(response: SubjectAccessRequestResponse<T>): String = objectMapper.writeValueAsString(response.content)
 
   fun assertHtmlEquals(
     actualHtml: String,
@@ -242,7 +270,7 @@ open class SarIntegrationTestHelper(
     )
   }
 
-  fun saveSarApiResponse(response: SubjectAccessRequestResponse) {
+  fun <T> saveSarApiResponse(response: SubjectAccessRequestResponse<T>) {
     saveContentToFile(toJson(response), "sar-api-response.json.log")
     log.info("SAVED SAR API RESPONSE TO: src/test/resources/sar-api-response.json.log")
   }
@@ -260,7 +288,7 @@ open class SarIntegrationTestHelper(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(NON_NULL)
-data class SubjectAccessRequestResponse(
-  val content: Any? = null,
+data class SubjectAccessRequestResponse<T>(
+  val content: T? = null,
   val attachments: List<Any>? = null,
 )
