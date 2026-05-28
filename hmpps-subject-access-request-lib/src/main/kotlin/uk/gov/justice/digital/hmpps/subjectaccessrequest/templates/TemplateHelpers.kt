@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.exception.SubjectAccess
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.lang.String.format
 import java.time.LocalDateTime
+import java.time.temporal.Temporal
 import java.util.Base64
 
 class TemplateHelpers(
@@ -26,6 +27,7 @@ class TemplateHelpers(
     if (input == null) return ""
     return when (input) {
       is String -> dateConversionHelper.convertDates(input)
+      is Temporal -> dateConversionHelper.convertDates(input.toString())
       is List<*> -> dateConversionHelper.convertDates(
         LocalDateTime.of(
           input.getOrDefault(0, 1),
@@ -132,7 +134,7 @@ class TemplateHelpers(
     return splitByCharacterTypeCamelCase(input).joinToString(" ").lowercase()
   }
 
-  fun inlineAttachmentContent(input: Map<String, Any>?, options: Options): String? {
+  fun inlineAttachmentContent(input: Any?, options: Options): String? {
     if (input == null) {
       return null
     }
@@ -150,7 +152,7 @@ class TemplateHelpers(
     return "data:${inlineAttachment.contentType};base64,$base64"
   }
 
-  fun inlineAttachment(input: Map<String, Any>?, height: Int? = null, width: Int? = null, options: Options): String {
+  fun inlineAttachment(input: Any?, height: Int? = null, width: Int? = null, options: Options): String {
     if (input == null) {
       return NO_DATA_HELD
     }
