@@ -96,6 +96,10 @@ tasks {
   }
 }
 
+tasks.named<Jar>("sourcesJar") {
+  dependsOn(tasks.named("generateGitProperties"))
+}
+
 tasks.named("generateMetadataFileForMainLibraryPublication") {
   dependsOn("copyAgent")
 }
