@@ -102,3 +102,7 @@ tasks {
     compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
   }
 }
+
+tasks.named<Jar>("sourcesJar") {
+  dependsOn(tasks.named("generateGitProperties"))
+}
