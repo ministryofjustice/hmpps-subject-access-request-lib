@@ -42,6 +42,10 @@
             </td>
         </tr>
         <tr><td>Formatted Date field: </td><td>{{optionalValue (formatDate dateField) }}</td></tr>
+        <tr><td>Optional field with default fallback: </td><td>{{optionalValue testKey }}</td></tr>
+        <tr><td>Optional field with custom fallback: </td><td>{{optionalValue testKey 'No data recorded for this field' }}</td></tr>
+        <tr><td>Optional string with default fallback: </td><td>{{optionalString testKey }}</td></tr>
+        <tr><td>Optional string with custom fallback: </td><td>{{optionalString testKey 'No data recorded for this field' }}</td></tr>
     </table>
 
     <div id="attachment">{{{ inlineAttachment attachment }}}</div>
