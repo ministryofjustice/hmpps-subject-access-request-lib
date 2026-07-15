@@ -511,6 +511,52 @@ class TemplateRenderServiceTest {
     }
   }
 
+  @Nested
+  inner class OptionalValue {
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    @ValueSource(strings = [""])
+    fun `should render field with default optional value`(testKey: String?) {
+      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional field with default fallback: </td><td>No Data Held</td></tr>")
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    @ValueSource(strings = [""])
+    fun `should render field with custom optional value`(testKey: String?) {
+      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional field with custom fallback: </td><td>No data recorded for this field</td></tr>")
+    }
+  }
+
+  @Nested
+  inner class OptionalString {
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    @ValueSource(strings = [""])
+    fun `should render string with default fallback`(testKey: String?) {
+      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional string with default fallback: </td><td>No Data Held</td></tr>")
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    @ValueSource(strings = ["", "  "])
+    fun `should render string with custom fallback`(testKey: String?) {
+      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+
+      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional string with custom fallback: </td><td>No data recorded for this field</td></tr>")
+    }
+  }
+
   private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
     RenderParameters(
       templateVersion = "1.0",
