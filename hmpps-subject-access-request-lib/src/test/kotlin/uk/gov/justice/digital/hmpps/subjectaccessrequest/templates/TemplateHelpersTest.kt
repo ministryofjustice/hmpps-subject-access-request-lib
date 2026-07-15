@@ -72,6 +72,18 @@ class TemplateHelpersTest {
       val response = templateHelpers.optionalValue("BOB")
       assertThat(response).isEqualTo("BOB")
     }
+
+    @Test
+    fun `optionalValue returns fallback value if null`() {
+      val response = templateHelpers.optionalValue(null, "No data")
+      assertThat(response).isEqualTo("No data")
+    }
+
+    @Test
+    fun `optionalValue returns fallback value if empty string`() {
+      val response = templateHelpers.optionalValue("", "No data")
+      assertThat(response).isEqualTo("No data")
+    }
   }
 
   @Nested
@@ -453,6 +465,21 @@ class TemplateHelpersTest {
     )
     fun `should return expected value`(input: String?, expectedValue: String) {
       assertThat(templateHelpers.optionalString(input)).isEqualTo(expectedValue)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "Data is Held       | Data is Held",
+        "SOme random String | SOme random String",
+        "''                 | No data",
+        "null               | No data",
+      ],
+      delimiterString = "|",
+      nullValues = ["null"],
+    )
+    fun `should return expected value given fallback value`(input: String?, expectedValue: String) {
+      assertThat(templateHelpers.optionalString(input, "No data")).isEqualTo(expectedValue)
     }
 
     @ParameterizedTest

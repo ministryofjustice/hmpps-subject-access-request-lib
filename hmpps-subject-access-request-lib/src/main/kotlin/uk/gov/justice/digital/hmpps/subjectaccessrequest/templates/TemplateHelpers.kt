@@ -55,16 +55,16 @@ class TemplateHelpers(
     return default
   }
 
-  fun optionalValue(input: Any?): Any {
-    if (input == null || input == "") return NO_DATA_HELD
+  fun optionalValue(input: Any?, fallback: String? = null): Any {
+    if (input == null || input == "") return fallback ?: NO_DATA_HELD
     return input
   }
 
-  fun optionalString(input: Any?): Any {
-    if (input == null) return NO_DATA_HELD
+  fun optionalString(input: Any?, fallback: String? = null): Any {
+    if (input == null) return fallback ?: NO_DATA_HELD
 
     if (input is String) {
-      return if (isNotBlank(input)) input else NO_DATA_HELD
+      return if (isNotBlank(input)) input else fallback ?: NO_DATA_HELD
     }
     throw SubjectAccessRequestTemplatingException(
       message = "required type String or null, but actual type was ${input::class.simpleName}",
