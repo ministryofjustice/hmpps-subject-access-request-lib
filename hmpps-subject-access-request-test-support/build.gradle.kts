@@ -25,6 +25,8 @@ dependencies {
   implementation("com.itextpdf:itext7-core:9.6.0")
   implementation("com.itextpdf:html2pdf:6.3.2")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 }
 
 publishing {
