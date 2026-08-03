@@ -48,7 +48,7 @@ open class SarIntegrationTestHelper(
   val templateDataFetcherFacade: TemplateDataFetcherFacade = mock(),
   val templateHelpers: TemplateHelpers = TemplateHelpers(templateDataFetcherFacade, jacksonObjectMapper()),
   val templateRenderService: TemplateRenderService = TemplateRenderService(templateHelpers),
-  val pdfRenderer: PdfRenderer = PdfRenderer(),
+  val pdfRenderer: PdfRenderer = OpenHtmlPdfRenderer(),
 ) {
 
   companion object {
