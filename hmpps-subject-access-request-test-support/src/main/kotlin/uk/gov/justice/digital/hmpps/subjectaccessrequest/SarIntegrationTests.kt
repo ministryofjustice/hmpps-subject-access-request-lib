@@ -5,6 +5,7 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import java.time.LocalDate
 import javax.sql.DataSource
 
@@ -67,6 +68,13 @@ interface SarApiTestBase : SarTestBase {
    * @return the type of the content section, default is [Any]
    */
   fun getContentType(): Class<*> = Any::class.java
+
+  /**
+   * Override this to define the authorisation source value used in API calls to get SAR Data and Template from service.
+   * 
+   * @return the [AuthSource] value to use in API calls 
+   */
+  fun getAuthorisationSource(): AuthSource = AuthSource.NONE
 }
 
 /**
@@ -88,7 +96,15 @@ interface SarApiDataTest : SarApiTestBase {
   fun `SAR API should return expected data`() {
     setupTestData()
 
-    val response = getSarHelper().requestSarData(getPrn(), getCrn(), getFromDate(), getToDate(), getWebTestClientInstance(), getContentType())
+    val response = getSarHelper().requestSarData(
+      getPrn(),
+      getCrn(),
+      getFromDate(),
+      getToDate(),
+      getWebTestClientInstance(),
+      getContentType(),
+      getAuthorisationSource(),
+    )
     if (System.getenv("SAR_GENERATE_ACTUAL").toBoolean()) {
       getSarHelper().saveSarApiResponse(response)
     } else {
@@ -140,8 +156,9 @@ interface SarReportTest : SarApiTestBase {
       getToDate(),
       getWebTestClientInstance(),
       getContentType(),
+      getAuthorisationSource(),
     )
-    val templateResponse = getSarHelper().requestSarTemplate(getWebTestClientInstance())
+    val templateResponse = getSarHelper().requestSarTemplate(getWebTestClientInstance(), getAuthorisationSource())
 
     val renderResult = getSarHelper().renderServiceReport(
       data = dataResponse.content,

@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.RenderParamet
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateDataFetcherFacade
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpers
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateRenderService
+import uk.gov.justice.hmpps.kotlin.auth.AuthSource
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -59,7 +60,8 @@ open class SarIntegrationTestHelper(
     prn: String,
     webTestClient: WebTestClient,
     contentType: Class<T>,
-  ): SubjectAccessRequestResponse<T> = requestSarData(prn, null, null, null, webTestClient, contentType)
+    authSource: AuthSource = AuthSource.NONE,
+  ): SubjectAccessRequestResponse<T> = requestSarData(prn, null, null, null, webTestClient, contentType, authSource = authSource)
 
   fun <T> requestSarDataForPrn(
     prn: String,
@@ -67,13 +69,15 @@ open class SarIntegrationTestHelper(
     toDate: LocalDate?,
     webTestClient: WebTestClient,
     contentType: Class<T>,
-  ): SubjectAccessRequestResponse<T> = requestSarData(prn, null, fromDate, toDate, webTestClient, contentType)
+    authSource: AuthSource = AuthSource.NONE,
+  ): SubjectAccessRequestResponse<T> = requestSarData(prn, null, fromDate, toDate, webTestClient, contentType, authSource = authSource)
 
   fun <T> requestSarDataForCrn(
     crn: String,
     webTestClient: WebTestClient,
     contentType: Class<T>,
-  ): SubjectAccessRequestResponse<T> = requestSarData(null, crn, null, null, webTestClient, contentType)
+    authSource: AuthSource = AuthSource.NONE,
+  ): SubjectAccessRequestResponse<T> = requestSarData(null, crn, null, null, webTestClient, contentType, authSource = authSource)
 
   fun <T> requestSarDataForCrn(
     crn: String,
@@ -81,7 +85,8 @@ open class SarIntegrationTestHelper(
     toDate: LocalDate?,
     webTestClient: WebTestClient,
     contentType: Class<T>,
-  ): SubjectAccessRequestResponse<T> = requestSarData(null, crn, fromDate, toDate, webTestClient, contentType)
+    authSource: AuthSource = AuthSource.NONE,
+  ): SubjectAccessRequestResponse<T> = requestSarData(null, crn, fromDate, toDate, webTestClient, contentType, authSource = authSource)
 
   fun <T> requestSarData(
     prn: String?,
@@ -90,6 +95,7 @@ open class SarIntegrationTestHelper(
     toDate: LocalDate?,
     webTestClient: WebTestClient,
     contentType: Class<T>,
+    authSource: AuthSource = AuthSource.NONE,
   ): SubjectAccessRequestResponse<T> {
     val response = webTestClient.get().uri {
       it.path("/subject-access-request")
@@ -99,7 +105,7 @@ open class SarIntegrationTestHelper(
         .queryParamIfPresent("toDate", Optional.ofNullable(toDate))
         .build()
     }
-      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), authSource = authSource))
       .exchange()
       .expectStatus().isOk
       .expectBody(String::class.java)
@@ -115,14 +121,15 @@ open class SarIntegrationTestHelper(
     username: String? = "TEST_USR",
     roles: List<String> = listOf(),
     scopes: List<String> = listOf("read"),
-  ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles)
+    authSource: AuthSource,
+  ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles, authSource = authSource)
 
-  fun requestSarTemplate(webTestClient: WebTestClient): String = webTestClient
+  fun requestSarTemplate(webTestClient: WebTestClient, authSource: AuthSource = AuthSource.NONE): String = webTestClient
     .get().uri {
       it.path("/subject-access-request/template")
         .build()
     }
-    .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+    .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), authSource = authSource))
     .exchange()
     .expectStatus().isOk
     .expectBody(String::class.java)
