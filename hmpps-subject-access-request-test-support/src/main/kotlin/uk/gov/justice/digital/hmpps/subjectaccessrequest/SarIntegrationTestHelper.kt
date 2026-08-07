@@ -175,10 +175,10 @@ open class SarIntegrationTestHelper(
     return file
   }
 
-  fun renderAndSaveReportAsPdf(html: String, prn: String?, crn: String?) {
+  fun renderAndSaveReportAsPdf(html: String, prn: String?, crn: String?, filename: String = "sar-generated-report.pdf") {
     val renderedPdf = pdfRenderer.renderSubjectAccessRequestPdf(html, prn, crn)
-    saveContentToFile(renderedPdf.toByteArray(), "sar-generated-report.pdf", "build/test-generated")
-    log.info("SAVED SAR GENERATED REPORT PDF TO: build/test-generated/sar-generated-report.pdf")
+    saveContentToFile(renderedPdf.toByteArray(), filename, "build/test-generated")
+    log.info("SAVED SAR GENERATED REPORT PDF TO: build/test-generated/$filename")
   }
 
   fun renderServiceReport(
