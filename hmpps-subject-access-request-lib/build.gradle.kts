@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.8"
-  kotlin("plugin.spring") version "2.4.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.9"
+  kotlin("plugin.spring") version "2.4.20"
   kotlin("jvm") version "2.4.10"
   id("maven-publish")
   id("signing")
@@ -14,8 +14,8 @@ configurations {
 }
 
 dependencies {
-  api("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.1")
-  api("com.github.jknack:handlebars:4.5.4")
+  api("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.2")
+  api("com.github.jknack:handlebars:4.5.5")
   api("com.github.spullara.mustache.java:compiler:0.9.14")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
