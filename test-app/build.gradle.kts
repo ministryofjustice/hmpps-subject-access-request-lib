@@ -1,7 +1,7 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.9"
   kotlin("plugin.spring") version "2.4.20"
-  kotlin("jvm") version "2.4.10"
+  kotlin("jvm") version "2.4.20"
 }
 
 configurations {
@@ -20,7 +20,7 @@ dependencies {
   runtimeOnly("com.h2database:h2:2.5.250")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.2")
   testImplementation(project(":hmpps-subject-access-request-test-support"))
 }
 
