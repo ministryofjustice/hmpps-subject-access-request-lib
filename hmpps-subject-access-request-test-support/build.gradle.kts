@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.9"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.10"
   kotlin("plugin.spring") version "2.4.20"
   kotlin("jvm") version "2.4.20"
   id("maven-publish")
@@ -15,7 +15,7 @@ configurations {
 
 dependencies {
   implementation(project(":hmpps-subject-access-request-lib"))
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
   implementation("org.springframework.boot:spring-boot-webtestclient")
   implementation("org.mockito.kotlin:mockito-kotlin:6.4.0")
   implementation("net.javacrumbs.json-unit:json-unit-assertj:6.2.0")
