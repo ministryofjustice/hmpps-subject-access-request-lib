@@ -1,5 +1,7 @@
+import jdk.jfr.internal.JVM.exclude
+
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.12"
   kotlin("plugin.spring") version "2.4.20"
   kotlin("jvm") version "2.4.20"
 }
@@ -16,7 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-flyway")
 
   runtimeOnly("org.flywaydb:flyway-core")
-  runtimeOnly("org.postgresql:postgresql:42.7.13")
+  runtimeOnly("org.postgresql:postgresql:42.7.14")
   runtimeOnly("com.h2database:h2:2.5.252")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
