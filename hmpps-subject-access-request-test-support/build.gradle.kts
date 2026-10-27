@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.12"
-  kotlin("plugin.spring") version "2.4.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.14"
+  kotlin("plugin.spring") version "2.4.21"
   kotlin("jvm") version "2.4.20"
   id("maven-publish")
   id("signing")
@@ -18,13 +18,13 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
   implementation("org.springframework.boot:spring-boot-webtestclient")
   implementation("org.mockito.kotlin:mockito-kotlin:6.4.0")
-  implementation("net.javacrumbs.json-unit:json-unit-assertj:6.3.0")
+  implementation("net.javacrumbs.json-unit:json-unit-assertj:6.4.0")
   implementation("org.flywaydb:flyway-core")
   implementation("jakarta.persistence:jakarta.persistence-api")
   implementation("org.jsoup:jsoup:1.23.2")
-  implementation("com.helger:ph-css:8.2.1")
-  implementation("com.itextpdf:itext7-core:9.7.1")
-  implementation("com.itextpdf:html2pdf:6.3.3")
+  implementation("com.helger:ph-css:8.2.3")
+  implementation("com.itextpdf:itext7-core:9.8.0")
+  implementation("com.itextpdf:html2pdf:6.3.4")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
