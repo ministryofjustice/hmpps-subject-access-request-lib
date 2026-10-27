@@ -1,7 +1,9 @@
+import jdk.jfr.internal.JVM.exclude
+
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.14"
   kotlin("plugin.spring") version "2.4.21"
-  kotlin("jvm") version "2.4.20"
+  kotlin("jvm") version "2.4.21"
 }
 
 configurations {
