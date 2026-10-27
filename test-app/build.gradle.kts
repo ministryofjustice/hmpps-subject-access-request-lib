@@ -1,4 +1,3 @@
-import jdk.jfr.internal.JVM.exclude
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.14"
