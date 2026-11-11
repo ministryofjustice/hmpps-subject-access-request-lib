@@ -1,8 +1,9 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
+import com.github.jknack.handlebars.Context
+import com.github.jknack.handlebars.Handlebars
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
-import java.io.BufferedWriter
 import java.io.InputStream
 import java.io.Writer
 import java.nio.charset.StandardCharsets
@@ -10,19 +11,46 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.text.Charsets.UTF_8
 
-class FileBasedTemplateRenderService(templateHelpers: TemplateHelpers) : BaseTemplateRenderService(templateHelpers) {
+const val SAR_STYLE_SHEET_PATH = "/templates/main_stylesheet.html"
+
+class FileBasedTemplateRenderService(private val templateHelpers: TemplateHelpers) {
+
+  private val stylesheet by lazy {
+    this::class.java
+      .getResource(SAR_STYLE_SHEET_PATH)
+      ?.readText()
+      ?: error("Unable to load stylesheet $SAR_STYLE_SHEET_PATH")
+  }
 
   fun renderServiceTemplate(
     params: RenderParameters,
     renderRequestInfo: RenderRequestInfo,
     outputTarget: TempFile,
   ) {
-    val renderedServiceReport = getCompiledStyleTemplate(params, renderRequestInfo)
-    val compiledStyleTemplate = getCompiledStyleTemplate()
+    val handlebars = Handlebars()
+    handlebars.registerHelpers(templateHelpers)
 
-    BufferedWriter(outputTarget.getWriter()).use { writer ->
-      compiledStyleTemplate.execute(writer, mapOf("serviceTemplate" to renderedServiceReport)).flush()
+    val serviceTemplate = handlebars.compileInline(getCombinedTemplate(params))
+
+    val context = Context
+      .newBuilder(params.data)
+      .combine("render-request-info", renderRequestInfo)
+      .build()
+
+    outputTarget.getWriter().use { writer ->
+      serviceTemplate.apply(context, writer)
     }
+  }
+
+  /**
+   * Create a new combined template containing style sheet and the service template block.
+   */
+  private fun getCombinedTemplate(
+    params: RenderParameters,
+  ): String = buildString {
+    append(stylesheet)
+    appendLine()
+    append(params.template)
   }
 }
 
