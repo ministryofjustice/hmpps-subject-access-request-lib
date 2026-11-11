@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.io.BufferedWriter
 import java.io.ByteArrayOutputStream
-import java.io.FileWriter
 import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.io.StringReader
