@@ -72,7 +72,7 @@ class TempFile(
   init {
     if (!Files.exists(path)) {
       log.info("temp file does not exists at path {}, creating it", path)
-      Files.createFile(path)
+      Files.createTempFile(path, "sar", "rendered")
     }
   }
 
