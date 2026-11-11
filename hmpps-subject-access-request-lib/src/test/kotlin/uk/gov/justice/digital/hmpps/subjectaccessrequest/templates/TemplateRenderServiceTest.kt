@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EmptySource
@@ -19,10 +20,14 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.io.ByteArrayOutputStream
+import java.nio.file.Path
 import java.util.UUID
 import kotlin.text.Charsets.UTF_8
 
 class TemplateRenderServiceTest {
+
+  @TempDir
+  lateinit var tempDir: Path
 
   private val templateDataFetcher: TemplateDataFetcherFacade = mock()
 
@@ -42,6 +47,42 @@ class TemplateRenderServiceTest {
 
   @Nested
   inner class RenderReportHtmlFromTemplateAndData {
+
+    @Test
+    fun `renderServiceTemplate and renderServiceTemplateToFile produce identical content`() {
+      whenever(templateDataFetcher.findPrisonNameByPrisonId("AZ"))
+        .thenReturn("Alcatraz")
+
+      whenever(templateDataFetcher.findUserLastNameByUsername("354703"))
+        .thenReturn("Capone")
+
+      whenever(templateDataFetcher.findLocationNameByDpsId("1234"))
+        .thenReturn("Cell 1234")
+
+      whenever(templateDataFetcher.findLocationNameByNomisId(789))
+        .thenReturn("Infirmary")
+
+      whenever(templateDataFetcher.getRenderableAttachment(inlineAttachment, renderRequestInfo))
+        .thenReturn("imagecontent".toByteArray(UTF_8))
+
+      val renderParams = RenderParameters(
+        templateVersion = "1.0",
+        template = getResource("/templates/test-service-template.mustache"),
+        data = testServiceData,
+      )
+
+      val actualInMemory = renderService.renderServiceTemplate(renderParams, renderRequestInfo)
+      assertThat(actualInMemory).isNotNull
+
+      val tempFile = TempFile(tempDir.resolve("report.hml"))
+      renderService.renderServiceTemplateToFile(renderParams, renderRequestInfo, tempFile)
+
+      assertThat(tempFile.path).exists()
+      val actualFileOnDisk = tempFile.getContentAsString()
+
+      assertThat(actualFileOnDisk).isNotNull
+      assertThat(actualFileOnDisk).isEqualTo(actualInMemory.toStringValue())
+    }
 
     @Test
     fun `should render template and transform expected values`() {
@@ -66,33 +107,35 @@ class TemplateRenderServiceTest {
         data = testServiceData,
       )
 
-      val actual = renderService.renderServiceTemplate(renderParams, renderRequestInfo)
-      assertThat(actual).isNotNull
+      TempFile(tempDir.resolve("test.html")).use { tempFile ->
+        val actual = renderService.renderServiceTemplateToFile(renderParams, renderRequestInfo, tempFile)
+        assertThat(actual).isNotNull
 
-      val generatedHtml = actual.toStringValue()
-      assertThat(generatedHtml).contains("<h2>Test Service Data</h2>")
+        val generatedHtml = tempFile.getContentAsString()
+        assertThat(generatedHtml).contains("<h2>Test Service Data</h2>")
 
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Test Key:</td><td>testValue1</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Username: </td><td>Capone</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Prison: </td><td>Alcatraz</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>DPS Location: </td><td>Cell 1234</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nomis Location: </td><td>Infirmary</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Boolean Value: </td><td>Yes</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Camel Case: </td><td>hello world</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>String Equality: </td><td>true</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data: </td><td>nestedValue1</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data: </td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<td>Array Data Indexed: </td>")
-      assertThat(generatedHtml).containsOnlyOnce("<li>Array data 1 - arrayValue1-1</li>")
-      assertThat(generatedHtml).containsOnlyOnce("<li>Array data 2 - arrayValue1-2</li>")
-      assertThat(generatedHtml).containsOnlyOnce("<tr><td>Formatted Date field: </td><td>26 July 2023, 12:59:57 pm</td></tr>")
-      assertThat(generatedHtml).containsOnlyOnce("<div id=\"attachment\"><img src=\"data:image/jpeg;base64,aW1hZ2Vjb250ZW50\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/></div>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Test Key:</td><td>testValue1</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Username: </td><td>Capone</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Prison: </td><td>Alcatraz</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>DPS Location: </td><td>Cell 1234</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nomis Location: </td><td>Infirmary</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Boolean Value: </td><td>Yes</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Camel Case: </td><td>hello world</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>String Equality: </td><td>true</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Nested Data: </td><td>nestedValue1</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Array Data: </td><td><ul><li>arrayValue1-1</li><li>arrayValue1-2</li></ul></td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<td>Array Data Indexed: </td>")
+        assertThat(generatedHtml).containsOnlyOnce("<li>Array data 1 - arrayValue1-1</li>")
+        assertThat(generatedHtml).containsOnlyOnce("<li>Array data 2 - arrayValue1-2</li>")
+        assertThat(generatedHtml).containsOnlyOnce("<tr><td>Formatted Date field: </td><td>26 July 2023, 12:59:57 pm</td></tr>")
+        assertThat(generatedHtml).containsOnlyOnce("<div id=\"attachment\"><img src=\"data:image/jpeg;base64,aW1hZ2Vjb250ZW50\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/></div>")
 
-      verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
-      verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
-      verify(templateDataFetcher, times(1)).findLocationNameByDpsId("1234")
-      verify(templateDataFetcher, times(1)).findLocationNameByNomisId(789)
-      verify(templateDataFetcher, times(1)).getRenderableAttachment(inlineAttachment, renderRequestInfo)
+        verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
+        verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
+        verify(templateDataFetcher, times(1)).findLocationNameByDpsId("1234")
+        verify(templateDataFetcher, times(1)).findLocationNameByNomisId(789)
+        verify(templateDataFetcher, times(1)).getRenderableAttachment(inlineAttachment, renderRequestInfo)
+      }
     }
   }
 
@@ -104,7 +147,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findUserLastNameByUsername("354703"))
         .thenReturn("Jailbird")
 
-      val actual = renderReportHtml(TestServiceData(userId = "354703"))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(userId = "354703"))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Username: </td><td>Jailbird</td></tr>")
       verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
@@ -115,7 +158,7 @@ class TemplateRenderServiceTest {
     @EmptySource
     @ValueSource(strings = ["  "])
     fun `should render no data held if id is null or empty`(id: String?) {
-      val actual = renderReportHtml(TestServiceData(userId = id))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(userId = id))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Username: </td><td>No Data Held</td></tr>")
       verify(templateDataFetcher, never()).findUserLastNameByUsername(anyString())
@@ -126,7 +169,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findUserLastNameByUsername("354703"))
         .thenReturn(null)
 
-      val actual = renderReportHtml(TestServiceData(userId = "354703"))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(userId = "354703"))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Username: </td><td>354703</td></tr>")
       verify(templateDataFetcher, times(1)).findUserLastNameByUsername("354703")
@@ -141,7 +184,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findPrisonNameByPrisonId("AZ"))
         .thenReturn("Alcatraz")
 
-      val actual = renderReportHtml(TestServiceData(prisonCode = "AZ"))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(prisonCode = "AZ"))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Prison: </td><td>Alcatraz</td></tr>")
       verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
@@ -151,7 +194,7 @@ class TemplateRenderServiceTest {
     @NullSource
     @EmptySource
     fun `should render no data held if id is null or empty`(id: String?) {
-      val actual = renderReportHtml(TestServiceData(prisonCode = id))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(prisonCode = id))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Prison: </td><td>No Data Held</td></tr>")
       verify(templateDataFetcher, never()).findPrisonNameByPrisonId(anyString())
@@ -162,7 +205,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findPrisonNameByPrisonId("AZ"))
         .thenReturn(null)
 
-      val actual = renderReportHtml(TestServiceData(prisonCode = "AZ"))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(prisonCode = "AZ"))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Prison: </td><td>AZ</td></tr>")
       verify(templateDataFetcher, times(1)).findPrisonNameByPrisonId("AZ")
@@ -177,7 +220,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findLocationNameByDpsId("1234"))
         .thenReturn("Cell 666")
 
-      val actual = renderReportHtml(TestServiceData(dpsLocationId = "1234"))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(dpsLocationId = "1234"))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>DPS Location: </td><td>Cell 666</td></tr>")
       verify(templateDataFetcher, times(1)).findLocationNameByDpsId("1234")
@@ -187,7 +230,7 @@ class TemplateRenderServiceTest {
     @NullSource
     @EmptySource
     fun `should render no data held if id is null or empty`(id: String?) {
-      val actual = renderReportHtml(TestServiceData(dpsLocationId = id))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(dpsLocationId = id))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>DPS Location: </td><td>No Data Held</td></tr>")
       verify(templateDataFetcher, never()).findLocationNameByDpsId(anyString())
@@ -198,7 +241,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findLocationNameByDpsId("1234"))
         .thenReturn(null)
 
-      val actual = renderReportHtml(TestServiceData(dpsLocationId = "1234"))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(dpsLocationId = "1234"))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>DPS Location: </td><td>1234</td></tr>")
       verify(templateDataFetcher, times(1)).findLocationNameByDpsId("1234")
@@ -213,7 +256,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findLocationNameByNomisId(1234))
         .thenReturn("Cell 666")
 
-      val actual = renderReportHtml(TestServiceData(nomisLocationId = 1234))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(nomisLocationId = 1234))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Nomis Location: </td><td>Cell 666</td></tr>")
       verify(templateDataFetcher, times(1)).findLocationNameByNomisId(1234)
@@ -221,7 +264,7 @@ class TemplateRenderServiceTest {
 
     @Test
     fun `should render no data held if location Id is null`() {
-      val actual = renderReportHtml(TestServiceData(nomisLocationId = null))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(nomisLocationId = null))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Nomis Location: </td><td>No Data Held</td></tr>")
       verify(templateDataFetcher, never()).findLocationNameByNomisId(any())
@@ -232,7 +275,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.findLocationNameByNomisId(1234))
         .thenReturn(null)
 
-      val actual = renderReportHtml(TestServiceData(nomisLocationId = 1234))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(nomisLocationId = 1234))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Nomis Location: </td><td>1234</td></tr>")
       verify(templateDataFetcher, times(1)).findLocationNameByNomisId(1234)
@@ -247,7 +290,7 @@ class TemplateRenderServiceTest {
       whenever(templateDataFetcher.getRenderableAttachment(inlineAttachment, renderRequestInfo))
         .thenReturn("imagecontent".toByteArray(UTF_8))
 
-      val actual = renderReportHtml(
+      val actual = renderReportHtmlToTempFileOnDisk(
         TestServiceData(
           attachment = mapOf(
             "contentType" to "image/jpeg",
@@ -263,7 +306,7 @@ class TemplateRenderServiceTest {
 
     @Test
     fun `should render no data held if attachment is null`() {
-      val actual = renderReportHtml(TestServiceData(attachment = null))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(attachment = null))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<div id=\"attachment\">No Data Held</div>")
       verify(templateDataFetcher, never()).getRenderableAttachment(any(), any())
@@ -287,7 +330,7 @@ class TemplateRenderServiceTest {
     )
     fun `should convert boolean field to expected value`(input: Any?, expected: String) {
       assertContainsExpectedValueOnce(
-        actual = renderReportHtml(TestServiceData(booleanVal = input)),
+        actual = renderReportHtmlToTempFileOnDisk(TestServiceData(booleanVal = input)),
         expectValue = "<tr><td>Boolean Value: </td><td>$expected</td></tr>",
       )
     }
@@ -308,7 +351,7 @@ class TemplateRenderServiceTest {
     )
     fun `should convert field to expected camel case value`(input: String?, expected: String) {
       assertContainsExpectedValueOnce(
-        actual = renderReportHtml(TestServiceData(camelCaseVal = input)),
+        actual = renderReportHtmlToTempFileOnDisk(TestServiceData(camelCaseVal = input)),
         expectValue = "<tr><td>Camel Case: </td><td>$expected</td></tr>",
       )
     }
@@ -335,7 +378,7 @@ class TemplateRenderServiceTest {
       expected: Boolean,
     ) {
       assertContainsExpectedValueOnce(
-        actual = renderReportHtml(TestServiceData(testKey = value1, testKey2 = value2)),
+        actual = renderReportHtmlToTempFileOnDisk(TestServiceData(testKey = value1, testKey2 = value2)),
         expectValue = "<tr><td>String Equality: </td><td>$expected</td></tr>",
       )
     }
@@ -505,7 +548,7 @@ class TemplateRenderServiceTest {
 
     private fun assertContainsExpectedFormattedDateValue(input: String?, expected: String) {
       assertContainsExpectedValueOnce(
-        actual = renderReportHtml(TestServiceData(dateField = input)),
+        actual = renderReportHtmlToTempFileOnDisk(TestServiceData(dateField = input)),
         expectValue = "<tr><td>Formatted Date field: </td><td>$expected</td></tr>",
       )
     }
@@ -518,7 +561,7 @@ class TemplateRenderServiceTest {
     @EmptySource
     @ValueSource(strings = [""])
     fun `should render field with default optional value`(testKey: String?) {
-      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(testKey = testKey))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional field with default fallback: </td><td>No Data Held</td></tr>")
     }
@@ -528,7 +571,7 @@ class TemplateRenderServiceTest {
     @EmptySource
     @ValueSource(strings = [""])
     fun `should render field with custom optional value`(testKey: String?) {
-      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(testKey = testKey))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional field with custom fallback: </td><td>No data recorded for this field</td></tr>")
     }
@@ -541,7 +584,7 @@ class TemplateRenderServiceTest {
     @EmptySource
     @ValueSource(strings = [""])
     fun `should render string with default fallback`(testKey: String?) {
-      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(testKey = testKey))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional string with default fallback: </td><td>No Data Held</td></tr>")
     }
@@ -551,24 +594,30 @@ class TemplateRenderServiceTest {
     @EmptySource
     @ValueSource(strings = ["", "  "])
     fun `should render string with custom fallback`(testKey: String?) {
-      val actual = renderReportHtml(TestServiceData(testKey = testKey))
+      val actual = renderReportHtmlToTempFileOnDisk(TestServiceData(testKey = testKey))
 
       assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional string with custom fallback: </td><td>No data recorded for this field</td></tr>")
     }
   }
 
-  private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
-    RenderParameters(
-      templateVersion = "1.0",
-      template = getResource("/templates/test-service-template.mustache"),
-      data = listOf(data),
-    ),
-    renderRequestInfo,
-  )
+  private fun renderReportHtmlToTempFileOnDisk(data: TestServiceData): TempFile {
+    val outputTarget = TempFile(tempDir.resolve("report.html"))
 
-  private fun assertContainsExpectedValueOnce(actual: ByteArrayOutputStream, expectValue: String) {
+    renderService.renderServiceTemplateToFile(
+      RenderParameters(
+        templateVersion = "1.0",
+        template = getResource("/templates/test-service-template.mustache"),
+        data = listOf(data),
+      ),
+      renderRequestInfo,
+      outputTarget,
+    )
+    return outputTarget
+  }
+
+  private fun assertContainsExpectedValueOnce(actual: TempFile, expectValue: String) {
     assertThat(actual).isNotNull
-    assertThat(actual.toStringValue()).containsOnlyOnce(expectValue)
+    assertThat(actual.getContentAsString()).containsOnlyOnce(expectValue)
   }
 
   private fun getResource(path: String): String = this::class.java.getResource(path)
