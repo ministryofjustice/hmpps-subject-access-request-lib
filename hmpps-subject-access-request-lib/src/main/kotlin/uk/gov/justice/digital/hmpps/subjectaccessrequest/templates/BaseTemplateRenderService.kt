@@ -1,11 +1,10 @@
-package uk.gov.justice.digital.hmpps.subjectaccessrequest
+package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
 import com.github.jknack.handlebars.Context
 import com.github.jknack.handlebars.Handlebars
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.Mustache
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpers
 import java.io.StringReader
 
 const val STYLE_TEMPLATE_PATH = "/templates/main_stylesheet.mustache"

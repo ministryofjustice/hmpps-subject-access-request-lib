@@ -15,7 +15,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.RenderParameters
 import kotlin.text.Charsets.UTF_8
 
 class TemplateRenderServiceTest : BaseTemplateRenderServiceTest() {

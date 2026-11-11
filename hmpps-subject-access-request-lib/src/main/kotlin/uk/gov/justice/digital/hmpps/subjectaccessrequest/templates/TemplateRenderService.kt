@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.BaseTemplateRenderService
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.RenderParameters
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.io.BufferedWriter
 import java.io.ByteArrayOutputStream

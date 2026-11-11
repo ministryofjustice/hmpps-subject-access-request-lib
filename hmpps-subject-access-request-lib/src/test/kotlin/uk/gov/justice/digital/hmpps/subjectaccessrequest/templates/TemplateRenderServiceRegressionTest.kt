@@ -5,7 +5,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.RenderParameters
 import java.nio.file.Path
 import kotlin.text.Charsets.UTF_8
 

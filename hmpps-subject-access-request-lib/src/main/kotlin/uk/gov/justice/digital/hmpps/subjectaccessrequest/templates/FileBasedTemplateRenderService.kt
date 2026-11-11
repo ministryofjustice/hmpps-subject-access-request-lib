@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
 import org.slf4j.LoggerFactory
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.BaseTemplateRenderService
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.RenderParameters
 import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
 import java.io.BufferedWriter
 import java.io.InputStream
