@@ -83,7 +83,7 @@ class TempFile(
 
   fun getInputStream(): InputStream = Files.newInputStream(path)
 
-  internal fun getContentAsString(): String = Files.readString(path, UTF_8)
+  fun getContentAsString(): String = Files.readString(path, UTF_8)
 
   override fun close() {
     log.info("close invoked on tempFile deleting file at path {}", path)
