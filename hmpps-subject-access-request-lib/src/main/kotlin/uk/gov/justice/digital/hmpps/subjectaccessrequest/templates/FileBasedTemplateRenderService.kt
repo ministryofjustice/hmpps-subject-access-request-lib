@@ -70,9 +70,12 @@ class TempFile(
   }
 
   init {
-    if (!Files.exists(path)) {
-      log.info("temp file does not exists at path {}, creating it", path)
-      Files.createTempFile(path, "sar", "rendered")
+    require(Files.exists(path)) {
+      "Temp file does not exist: $path"
+    }
+
+    require(Files.isRegularFile(path)) {
+      "Temp file is not a regular file: $path"
     }
   }
 

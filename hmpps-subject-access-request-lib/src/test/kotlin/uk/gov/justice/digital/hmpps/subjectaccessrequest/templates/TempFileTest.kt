@@ -15,71 +15,73 @@ class TempFileTest {
 
   @Test
   fun `should create expected file`() {
-    TempFile(baseDir.resolve("report.html")).use { tempFile ->
+    getTempFile().use { tempFile ->
       assertThat(tempFile.path).exists()
     }
   }
 
   @Test
   fun `should invoke AutoCloseable when used inside use block`() {
-    val filePath = baseDir.resolve("report.html")
-    TempFile(filePath).use { assertThat(filePath).exists() }
+    val tempFile = getTempFile()
+    tempFile.use { assertThat(tempFile.path).exists() }
 
-    assertThat(filePath).doesNotExist()
+    assertThat(tempFile.path).doesNotExist()
   }
 
   @Test
-  fun `should delete file when close is called  `() {
-    val filePath = baseDir.resolve("report.html")
-
-    val tempFile = TempFile(filePath)
-    assertThat(filePath).exists()
+  fun `should delete file when close is called `() {
+    val tempFile = getTempFile()
+    val filepath = tempFile.path
+    assertThat(filepath).exists()
 
     tempFile.close()
-    assertThat(filePath).doesNotExist()
+    assertThat(filepath).doesNotExist()
   }
 
   @Test
   fun `should write content to expected file`() {
-    val tempFile = TempFile(baseDir.resolve("report.html"))
+    getTempFile().use { tempFile ->
+      tempFile.getWriter().use { writer ->
+        writer.write("Hello world!")
+        writer.flush()
+      }
 
-    tempFile.getWriter().use { writer ->
-      writer.write("Hello world!")
-      writer.flush()
+      assertThat(Files.readString(tempFile.path)).isEqualTo("Hello world!")
     }
-
-    assertThat(Files.readString(tempFile.path)).isEqualTo("Hello world!")
   }
 
   @Test
   fun `getContentAsString returns the expected value`() {
-    val tempFile = TempFile(baseDir.resolve("report.html"))
+    getTempFile().use { tempFile ->
+      tempFile.getWriter().use { writer ->
+        writer.write("Hello world!")
+        writer.flush()
+      }
 
-    tempFile.getWriter().use { writer ->
-      writer.write("Hello world!")
-      writer.flush()
+      assertThat(tempFile.getContentAsString()).isEqualTo("Hello world!")
     }
-
-    assertThat(tempFile.getContentAsString()).isEqualTo("Hello world!")
   }
 
   @Test
   fun `getContentAsString returns the expected value when file is empty`() {
-    val tempFile = TempFile(baseDir.resolve("report.html"))
-    assertThat(tempFile.getContentAsString()).isEqualTo("")
+    getTempFile().use { tempFile ->
+      assertThat(tempFile.getContentAsString()).isEqualTo("")
+    }
   }
 
   @Test
   fun `getInputStream returns an inputStream to the expected file`() {
-    val tempFile = TempFile(baseDir.resolve("report.html"))
+    getTempFile().use { tempFile ->
+      tempFile.getWriter().use { writer ->
+        writer.write("SAR content here")
+        writer.flush()
+      }
 
-    tempFile.getWriter().use { writer ->
-      writer.write("SAR content here")
-      writer.flush()
-    }
-
-    BufferedReader(InputStreamReader(tempFile.getInputStream())).use { reader ->
-      assertThat(reader.readText()).isEqualTo("SAR content here")
+      BufferedReader(InputStreamReader(tempFile.getInputStream())).use { reader ->
+        assertThat(reader.readText()).isEqualTo("SAR content here")
+      }
     }
   }
+
+  private fun getTempFile(): TempFile = TempFile(Files.createTempFile(baseDir, "report", ".html"))
 }

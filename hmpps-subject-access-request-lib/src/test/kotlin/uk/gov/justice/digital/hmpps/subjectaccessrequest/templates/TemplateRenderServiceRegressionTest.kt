@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.whenever
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.text.Charsets.UTF_8
 
@@ -53,7 +54,7 @@ class TemplateRenderServiceRegressionTest : BaseTemplateRenderServiceTest() {
     val actualInMemory = legacyRenderService.renderServiceTemplate(renderParams, renderRequestInfo)
     assertThat(actualInMemory).isNotNull
 
-    TempFile(tempDir.resolve("report.hml")).use { tempFile ->
+    TempFile(Files.createTempFile(tempDir, "report", ".html")).use { tempFile ->
       fileBasedTemplateRenderService.renderServiceTemplate(renderParams, renderRequestInfo, tempFile)
 
       assertThat(tempFile.path).exists()

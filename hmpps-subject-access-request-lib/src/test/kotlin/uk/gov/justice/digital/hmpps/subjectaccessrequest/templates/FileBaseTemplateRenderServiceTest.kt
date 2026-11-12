@@ -16,6 +16,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.text.Charsets.UTF_8
 
@@ -56,7 +57,7 @@ class FileBaseTemplateRenderServiceTest : BaseTemplateRenderServiceTest() {
         data = testServiceData,
       )
 
-      TempFile(tempDir.resolve("test.html")).use { tempFile ->
+      getTempFile().use { tempFile ->
         fileBasedTemplateRenderService.renderServiceTemplate(renderParams, renderRequestInfo, tempFile)
 
         val generatedHtml = tempFile.getContentAsString()
@@ -564,7 +565,7 @@ class FileBaseTemplateRenderServiceTest : BaseTemplateRenderServiceTest() {
   }
 
   private fun renderReportHtmlToTempFileOnDisk(data: TestServiceData): TempFile {
-    val outputTarget = TempFile(tempDir.resolve("report.html"))
+    val outputTarget = getTempFile()
 
     fileBasedTemplateRenderService.renderServiceTemplate(
       RenderParameters(
@@ -581,5 +582,11 @@ class FileBaseTemplateRenderServiceTest : BaseTemplateRenderServiceTest() {
   private fun assertContainsExpectedValueOnce(actual: TempFile, expectValue: String) {
     assertThat(actual).isNotNull
     assertThat(actual.getContentAsString()).containsOnlyOnce(expectValue)
+  }
+
+  private fun getTempFile(): TempFile {
+    val filepath = Files.createTempFile(tempDir, "report", ".html")
+    val tempFile = TempFile(filepath)
+    return tempFile
   }
 }
