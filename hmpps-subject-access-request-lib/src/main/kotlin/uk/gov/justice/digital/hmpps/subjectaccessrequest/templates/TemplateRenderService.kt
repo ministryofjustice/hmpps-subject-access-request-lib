@@ -12,6 +12,14 @@ import java.nio.charset.StandardCharsets
 
 const val STYLE_TEMPLATE_PATH = "/templates/main_stylesheet.mustache"
 
+@Deprecated(
+  message = """
+      Replaced with 'FileBasedTemplateRenderService' which renders data to a temporary file on disk to 
+      prevent the process consuming the app memory when handling large volumes of data. 
+      This legacy version is fine for use in testing/verifying template content for sign off but shouldn't be used in 
+      the SAR prod environment. 
+      """,
+)
 class TemplateRenderService(
   private val templateHelpers: TemplateHelpers,
 ) {
@@ -27,6 +35,7 @@ class TemplateRenderService(
       .build()
 
     val renderedServiceReport = compiledServiceTemplate.apply(context)
+
     return renderStyleTemplate(renderedServiceReport)
   }
 
@@ -47,5 +56,3 @@ class TemplateRenderService(
 
   private fun getStyleTemplate() = this::class.java.getResource(STYLE_TEMPLATE_PATH)?.readText() ?: ""
 }
-
-data class RenderParameters(val templateVersion: String, val template: String, val data: Any?)
