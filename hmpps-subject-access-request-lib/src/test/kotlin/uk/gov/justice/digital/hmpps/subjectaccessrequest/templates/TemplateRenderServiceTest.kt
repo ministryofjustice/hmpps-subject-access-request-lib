@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.subjectaccessrequest.templates
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -12,19 +11,13 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.subjectaccessrequest.rendering.RenderRequestInfo
-import java.io.ByteArrayOutputStream
-import java.util.UUID
 import kotlin.text.Charsets.UTF_8
 
-class TemplateRenderServiceTest {
-
-  private val templateDataFetcher: TemplateDataFetcherFacade = mock()
+class TemplateRenderServiceTest : BaseTemplateRenderServiceTest() {
 
   private val renderService = TemplateRenderService(
     TemplateHelpers(
@@ -33,16 +26,8 @@ class TemplateRenderServiceTest {
     ),
   )
 
-  private val inlineAttachment = InlineAttachment(
-    contentType = "image/jpeg",
-    "http://file-url",
-    100,
-  )
-  private val renderRequestInfo = RenderRequestInfo(UUID.randomUUID(), "service-one")
-
   @Nested
   inner class RenderReportHtmlFromTemplateAndData {
-
     @Test
     fun `should render template and transform expected values`() {
       whenever(templateDataFetcher.findPrisonNameByPrisonId("AZ"))
@@ -257,7 +242,10 @@ class TemplateRenderServiceTest {
         ),
       )
 
-      assertContainsExpectedValueOnce(actual, expectValue = "<div id=\"attachment\"><img src=\"data:image/jpeg;base64,aW1hZ2Vjb250ZW50\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/></div>")
+      assertContainsExpectedValueOnce(
+        actual,
+        expectValue = "<div id=\"attachment\"><img src=\"data:image/jpeg;base64,aW1hZ2Vjb250ZW50\" alt=\"Inline attachment\" height=\"null\" width=\"null\"/></div>",
+      )
       verify(templateDataFetcher, times(1)).getRenderableAttachment(inlineAttachment, renderRequestInfo)
     }
 
@@ -520,7 +508,10 @@ class TemplateRenderServiceTest {
     fun `should render field with default optional value`(testKey: String?) {
       val actual = renderReportHtml(TestServiceData(testKey = testKey))
 
-      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional field with default fallback: </td><td>No Data Held</td></tr>")
+      assertContainsExpectedValueOnce(
+        actual,
+        expectValue = "<tr><td>Optional field with default fallback: </td><td>No Data Held</td></tr>",
+      )
     }
 
     @ParameterizedTest
@@ -530,7 +521,10 @@ class TemplateRenderServiceTest {
     fun `should render field with custom optional value`(testKey: String?) {
       val actual = renderReportHtml(TestServiceData(testKey = testKey))
 
-      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional field with custom fallback: </td><td>No data recorded for this field</td></tr>")
+      assertContainsExpectedValueOnce(
+        actual,
+        expectValue = "<tr><td>Optional field with custom fallback: </td><td>No data recorded for this field</td></tr>",
+      )
     }
   }
 
@@ -543,7 +537,10 @@ class TemplateRenderServiceTest {
     fun `should render string with default fallback`(testKey: String?) {
       val actual = renderReportHtml(TestServiceData(testKey = testKey))
 
-      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional string with default fallback: </td><td>No Data Held</td></tr>")
+      assertContainsExpectedValueOnce(
+        actual,
+        expectValue = "<tr><td>Optional string with default fallback: </td><td>No Data Held</td></tr>",
+      )
     }
 
     @ParameterizedTest
@@ -553,65 +550,26 @@ class TemplateRenderServiceTest {
     fun `should render string with custom fallback`(testKey: String?) {
       val actual = renderReportHtml(TestServiceData(testKey = testKey))
 
-      assertContainsExpectedValueOnce(actual, expectValue = "<tr><td>Optional string with custom fallback: </td><td>No data recorded for this field</td></tr>")
+      assertContainsExpectedValueOnce(
+        actual,
+        expectValue = "<tr><td>Optional string with custom fallback: </td><td>No data recorded for this field</td></tr>",
+      )
     }
   }
 
-  private fun renderReportHtml(data: TestServiceData): ByteArrayOutputStream = renderService.renderServiceTemplate(
+  private fun renderReportHtml(
+    data: TestServiceData,
+  ): String = renderService.renderServiceTemplate(
     RenderParameters(
       templateVersion = "1.0",
       template = getResource("/templates/test-service-template.mustache"),
       data = listOf(data),
     ),
     renderRequestInfo,
-  )
+  ).toStringValue()
 
-  private fun assertContainsExpectedValueOnce(actual: ByteArrayOutputStream, expectValue: String) {
+  private fun assertContainsExpectedValueOnce(actual: String, expectValue: String) {
     assertThat(actual).isNotNull
-    assertThat(actual.toStringValue()).containsOnlyOnce(expectValue)
+    assertThat(actual).containsOnlyOnce(expectValue)
   }
-
-  private fun getResource(path: String): String = this::class.java.getResource(path)
-    ?.readText()
-    ?: fail("Resource $path not found")
-
-  private data class TestServiceData(
-    val testKey: String? = null,
-    val testKey2: String? = null,
-    val prisonCode: String? = null,
-    val dpsLocationId: String? = null,
-    val nomisLocationId: Int? = null,
-    val booleanVal: Any? = null,
-    val camelCaseVal: String? = null,
-    val userId: String? = null,
-    val moreData: Map<String, Any> = emptyMap(),
-    val arrayData: MutableList<String> = mutableListOf(),
-    val dateField: String? = null,
-    val attachment: Map<String, Any>? = null,
-  )
-
-  private val testServiceData: List<TestServiceData> = listOf(
-    TestServiceData(
-      testKey = "testValue1",
-      testKey2 = "testValue1",
-      prisonCode = "AZ",
-      dpsLocationId = "1234",
-      nomisLocationId = 789,
-      booleanVal = true,
-      camelCaseVal = "HelloWorld",
-      userId = "354703",
-      moreData = mapOf(
-        "nestedKey" to "nestedValue1",
-      ),
-      arrayData = mutableListOf("arrayValue1-1", "arrayValue1-2"),
-      dateField = "2023-07-26T12:59:57.961+01:00",
-      attachment = mapOf(
-        "contentType" to "image/jpeg",
-        "url" to "http://file-url",
-        "filesize" to 100,
-      ),
-    ),
-  )
-
-  private fun ByteArrayOutputStream.toStringValue(): String = String(this.toByteArray())
 }
