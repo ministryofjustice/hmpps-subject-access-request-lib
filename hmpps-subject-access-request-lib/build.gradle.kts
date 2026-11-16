@@ -17,8 +17,10 @@ dependencies {
   api("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
   api("com.github.jknack:handlebars:4.5.2")
   api("com.github.spullara.mustache.java:compiler:0.9.14")
+  implementation("org.springframework.boot:spring-boot-starter-webflux")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.8.2")
+  testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 }
 
 publishing {
